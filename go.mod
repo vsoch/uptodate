@@ -1,9 +1,12 @@
-module github.com/vsoch/containerspec
+module github.com/vsoch/uptodate
 
 go 1.13
 
 require (
-	github.com/DataDrake/cli-ng/v2 v2.0.2 // indirect
-	github.com/archspec/archspec-go v0.0.0-20200618083206-89a4a3fc5891 // indirect
-	github.com/scylladb/go-set v1.0.2 // indirect
+	github.com/DataDrake/cli-ng/v2 v2.0.2
+	github.com/DataDrake/cuppa v1.1.1-0.20210306020014-480be4e72c83
+	github.com/alecbcs/lookout v1.2.7
+	github.com/asottile/dockerfile v3.1.0+incompatible
+	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/moby/buildkit v0.9.0 // indirect
 )

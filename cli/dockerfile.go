@@ -3,8 +3,8 @@ package cli
 import (
 	"fmt"
 	"github.com/DataDrake/cli-ng/v2/cmd"
-	"github.com/vsoch/uptodate/config"
 	"github.com/vsoch/uptodate/parsers"
+	"github.com/vsoch/uptodate/utils"
 )
 
 // Args and flags for generate
@@ -31,10 +31,14 @@ func init() {
 func RunDockerfile(r *cmd.Root, c *cmd.Sub) {
 
 	args := c.Args.(*DockerfileArgs)
-	flags := c.Flags.(*DockerfileFlags)
 
-	// Create a new config to get envars (not used yet)
-	c := config.NewConfig()
+	// If no root provided, assume parsing the PWD
+	if len(args.Root) == 0 {
+		args.Root = []string{utils.GetPwd()}
+	}
+
+	// Print the logo!
+	fmt.Println(utils.GetLogo() + "                     dockerfile")
 
 	// Update the dockerfiles with a Dockerfile parser
 	parser := parsers.DockerfileParser{}

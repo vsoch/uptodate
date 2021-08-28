@@ -1,19 +1,26 @@
 package utils
 
 import (
-	"errors"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
+// Wrapper to get the PWD
+func GetPwd() string {
+	path, err := os.Getwd()
+	if err != nil {
+		log.Fatal("Cannot derive the present working directory.")
+	}
+	return path
+}
+
 // Find files in a directory based on a pattern
 func RecursiveFind(root string, pattern string, allowPrefix bool) ([]string, error) {
 
 	// Create a list of results to return
-	results := make([]string)
+	results := []string{}
 
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		match, _ := filepath.Match(pattern, filepath.Base(path))
@@ -27,6 +34,8 @@ func RecursiveFind(root string, pattern string, allowPrefix bool) ([]string, err
 		if match {
 			results = append(results, path)
 		}
+		return nil
+
 	})
 
 	if err != nil {

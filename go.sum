@@ -1,0 +1,9 @@
+github.com/DataDrake/cli-ng/v2 v2.0.2 h1:7+25l25VmlERCE95glW6QKBUF13vxqAM2jasFiN02xQ=
+github.com/DataDrake/cli-ng/v2 v2.0.2/go.mod h1:bU9YaNNWWVq0eIdDsU3TCe9+7Jb398iBBoqee5EiKWQ=
+github.com/archspec/archspec-go v0.0.0-20200618083206-89a4a3fc5891 h1:onl72E6v1+IdcE+muOrNPt3e4LnNByKCaESJnAIHZ4Y=
+github.com/archspec/archspec-go v0.0.0-20200618083206-89a4a3fc5891/go.mod h1:YHtgXFjfzDUzAU+aLdLgo3uO2NuSRNqcV7gcJosdBRA=
+github.com/fatih/set v0.2.1/go.mod h1:+RKtMCH+favT2+3YecHGxcc0b4KyVWA1QWWJUs4E0CI=
+github.com/rakyll/statik v0.1.6 h1:uICcfUXpgqtw2VopbIncslhAmE5hwc4g20TEyEENBNs=
+github.com/rakyll/statik v0.1.6/go.mod h1:OEi9wJV/fMUAGx1eNjq75DKDsJVuEv1U0oYdX6GX8Zs=
+github.com/scylladb/go-set v1.0.2 h1:SkvlMCKhP0wyyct6j+0IHJkBkSZL+TDzZ4E7f7BCcRE=
+github.com/scylladb/go-set v1.0.2/go.mod h1:DkpGd78rljTxKAnTDPFqXSGxvETQnJyuSOQwsHycqfs=

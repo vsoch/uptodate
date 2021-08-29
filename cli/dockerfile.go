@@ -38,7 +38,7 @@ func RunDockerfile(r *cmd.Root, c *cmd.Sub) {
 	}
 
 	// Print the logo!
-	fmt.Println(utils.GetLogo() + "                     dockerfile")
+	fmt.Println(utils.GetLogo() + "                     dockerfile\n")
 
 	// Update the dockerfiles with a Dockerfile parser
 	parser := parsers.DockerfileParser{}

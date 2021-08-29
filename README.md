@@ -1,15 +1,5 @@
 # Up to Date
 
-```
-              _            _       _       
-  _   _ _ __ | |_ ___   __| | __ _| |_ ___ 
- | | | | '_ \| __/ _ \ / _  |/ _  | __/ _ \
- | |_| | |_) | || (_) | (_| | (_| | ||  __/
-  \__,_| .__/ \__\___/ \__,_|\__,_|\__\___|
-       |_|                     dockerfile
-
-```
-
 This is a library and GitHub action to automatically update different assets in your
 repository. To start, we will be updating the `FROM` images of Dockerfiles.
 
@@ -30,13 +20,26 @@ copy into a directory on your path.
 
 ### dockerfile
 
-The updtodate dockerfile command will update a single Dockerfile:
+The uptodate dockerfile command will update one or more Dockerfile.
+
+For example, to update a single Dockerfile, you would do:
 
 ```bash
 $ ./uptodate dockerfile /path/to/Dockerfile
+              _            _       _       
+  _   _ _ __ | |_ ___   __| | __ _| |_ ___ 
+ | | | | '_ \| __/ _ \ / _  |/ _  | __/ _ \
+ | |_| | |_) | || (_) | (_| | (_| | ||  __/
+  \__,_| .__/ \__\___/ \__,_|\__,_|\__\___|
+       |_|                     dockerfile
+
+
+  ⭐️ Updated ⭐️
+     Checked: 2
+    Modified: 0
 ```
 
-or an entire directory of Dockerfile:
+To update an entire directory of Dockerfile:
 
 ```bash
 $ ./uptodate dockerfile /path/to/directory
@@ -63,6 +66,22 @@ For base images and updating them this means:
 5. For each FROM, if a label exists after it for opencontainers, delete it
 6. Update label to use new tag
 
+### Development
+
+You can easily use the Makefile to also just build or run:
+
+```bash
+$ make
+
+# This won't include formatting to change the files
+$ make build
+```
+
+or you can use go directly!
+
+```bash
+$ go run main.go dockerfile
+```
 
 ## Previous Art
 

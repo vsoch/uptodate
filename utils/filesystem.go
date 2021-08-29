@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -14,6 +15,37 @@ func GetPwd() string {
 		log.Fatal("Cannot derive the present working directory.")
 	}
 	return path
+}
+
+// ReadFile reads a file from the system
+func ReadFile(path string) string {
+	filey, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err = filey.Close(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+	bytes, err := ioutil.ReadAll(filey)
+	return string(bytes)
+}
+
+// WriteFile and some content to the filesystem
+func WriteFile(path string, content string) error {
+	filey, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer filey.Close()
+
+	_, err = filey.WriteString(content)
+	if err != nil {
+		return err
+	}
+	err = filey.Sync()
+	return err
 }
 
 // Find files in a directory based on a pattern

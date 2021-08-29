@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
+	fpath "path"
 	"path/filepath"
 	"strings"
 )
@@ -15,6 +17,57 @@ func GetPwd() string {
 		log.Fatal("Cannot derive the present working directory.")
 	}
 	return path
+}
+
+// Copy a file from a source to a dest (intended for small files_
+func CopyFile(source string, dest string) {
+
+	// First open the source file
+	src, err := os.Open(source)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer src.Close()
+
+	// Now open the destination file
+	out, err := os.Create(dest)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer out.Close()
+
+	// Do the copy!
+	_, err = io.Copy(out, src)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+// Function to list directory, and either return basesnames of files, folders, or both
+func ListDir(path string, includeDir bool, includeFile bool) []string {
+
+	// We will return a list of string results
+	results := []string{}
+
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {
+		fullpath := fpath.Join(path, file.Name())
+		fileInfo, err := os.Stat(fullpath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// If it's a directory and we want directories, add it
+		if fileInfo.IsDir() && includeDir {
+			results = append(results, file.Name())
+		} else if includeFile {
+			results = append(results, file.Name())
+		}
+	}
+	return results
 }
 
 // ReadFile reads a file from the system

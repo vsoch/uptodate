@@ -1,4 +1,4 @@
-package parsers
+package docker
 
 // The Dockerfile parser is optimized to find and update FROM statements
 
@@ -164,6 +164,53 @@ func (d *Dockerfile) UpdateFroms() {
 	}
 }
 
+// ReplaceFroms simply replaces found FROM with a known value
+// This is typically run instead of UpdateFroms
+func (d *Dockerfile) ReplaceFroms(name string, tag string) {
+
+	// Prepare a set of updates
+	d.Updates = []Update{}
+
+	// Loop through FROMs and update! See UpdateFroms for comments
+	for _, from := range d.Cmds["from"] {
+
+		container := from.Value[0]
+
+		// We can't reliably replace a variable
+		isVariable := strings.Contains(container, "$")
+		if isVariable {
+			continue
+		}
+
+		// Just get rid of hashes and tags so we have base container name
+		if strings.Contains(container, "@") {
+			parts := strings.SplitN(container, "@", 2)
+			container = parts[0]
+		}
+
+		if strings.Contains(container, ":") {
+			parts := strings.SplitN(container, ":", 2)
+			container = parts[0]
+		}
+
+		// Clean up white spaces, and check if we have a match
+		container = strings.Trim(container, " ")
+		if container == name {
+
+			updated := container + ":" + tag
+
+			// Add original content back
+			for _, extra := range from.Value[1:] {
+				updated += " " + extra
+			}
+
+			update := Update{Original: from.Original, Updated: updated, LineNo: from.StartIndex()}
+			d.Updates = append(d.Updates, update)
+		}
+
+	}
+}
+
 // Write writes a new Dockerfile
 func (d *Dockerfile) Write() {
 
@@ -219,7 +266,7 @@ func (s *DockerfileParser) AddDockerfile(path string) {
 }
 
 // Entrypoint to parse one or more Dockerfiles
-func (s *DockerfileParser) Parse(path string) error {
+func (s *DockerfileParser) Parse(path string, dryrun bool) error {
 
 	// Find Dockerfiles in path and allow prefixes
 	paths, _ := utils.RecursiveFind(path, "Dockerfile", true)
@@ -238,13 +285,23 @@ func (s *DockerfileParser) Parse(path string) error {
 			if len(dockerfile.Updates) == 0 {
 				continue
 			}
-			dockerfile.Write()
+
+			// Only write changes if it's not a dryrun
+			if !dryrun {
+				dockerfile.Write()
+			}
 			count += 1
 		}
 
 	}
-	fmt.Println("\n  ⭐️ Updated ⭐️")
+	action := "Updated"
+	if dryrun {
+		action = "Will Be Updated"
+	}
+	fmt.Println("\n  ⭐️ " + action + " ⭐️")
 	fmt.Printf("     Checked: %d\n", len(s.Dockerfiles))
-	fmt.Printf("    Modified: %d\n", count)
+	if !dryrun {
+		fmt.Printf("    Modified: %d\n", count)
+	}
 	return nil
 }

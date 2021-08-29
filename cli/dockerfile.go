@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 	"github.com/DataDrake/cli-ng/v2/cmd"
-	"github.com/vsoch/uptodate/parsers"
+	"github.com/vsoch/uptodate/parsers/docker"
 	"github.com/vsoch/uptodate/utils"
 )
 
@@ -11,7 +11,9 @@ import (
 type DockerfileArgs struct {
 	Root []string `zero:"true" desc:"A Dockerfile or directory to parse."`
 }
-type DockerfileFlags struct{}
+type DockerfileFlags struct {
+	DryRun bool `long:"dry-run" desc:"Preview changes but don't write."`
+}
 
 // Dockerfile updates one or more Dockerfile
 var Dockerfile = cmd.Sub{
@@ -31,6 +33,7 @@ func init() {
 func RunDockerfile(r *cmd.Root, c *cmd.Sub) {
 
 	args := c.Args.(*DockerfileArgs)
+	flags := c.Flags.(*DockerfileFlags)
 
 	// If no root provided, assume parsing the PWD
 	if len(args.Root) == 0 {
@@ -41,6 +44,6 @@ func RunDockerfile(r *cmd.Root, c *cmd.Sub) {
 	fmt.Println(utils.GetLogo() + "                     dockerfile\n")
 
 	// Update the dockerfiles with a Dockerfile parser
-	parser := parsers.DockerfileParser{}
-	parser.Parse(args.Root[0])
+	parser := docker.DockerfileParser{}
+	parser.Parse(args.Root[0], flags.DryRun)
 }

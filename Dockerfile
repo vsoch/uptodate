@@ -25,7 +25,7 @@ RUN make
 # Multistage build to only copy over the binary
 FROM alpine
 
-RUN apk add --no-cache git
+RUN apk add --no-cache git bash
 WORKDIR /code
 COPY --from=builder /code/uptodate /code/entrypoint.sh /code/
 ENV PATH /code:$PATH

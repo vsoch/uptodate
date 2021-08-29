@@ -18,13 +18,6 @@ COPY . .
 
 # Install some dependencies
 RUN apk add --no-cache binutils build-base linux-headers
-#    gcc \
-#    build-base \ 
-#    binutils \
-#    musl-dev \
-#    binutils-gold \
-#    musl-dev \
-#    linux-headers
 
 # Build the action
 RUN make
@@ -34,5 +27,6 @@ FROM alpine
 
 RUN apk add --no-cache git
 WORKDIR /code
-COPY --from=builder /code/uptodate /code/uptodate
-ENTRYPOINT ["/code/uptodate"]
+COPY --from=builder /code/uptodate /code/entrypoint.sh /code/
+ENV PATH /code:$PATH
+ENTRYPOINT ["/bin/bash", "/code/entrypoint.sh"]

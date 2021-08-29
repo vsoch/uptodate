@@ -1,0 +1,29 @@
+name: CI
+on: [pull_request]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Actions Repository
+      uses: actions/checkout@v2
+    - name: Test dockerfile uptodate GitHub Action
+      uses: ./
+      with: 
+        root: ./tests
+        parser: dockerfile
+
+    - name: Check output files
+      run: |
+         sudo apt-get install -y tree
+         tree ./tests        
+    - name: Test dockerhierarchy uptodate GitHub Action
+      uses: ./
+      with: 
+        root: ./tests
+        parser: dockerhierarchy
+
+    - name: Check output files again
+      run: |
+         tree ./tests        
+

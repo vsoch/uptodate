@@ -1,0 +1,12 @@
+dockerhierarchy:
+  container:
+    name: ubuntu
+    filter: 
+     # we only want XX.04 versions
+     - "^[0-9]+[.]04$"
+    startat: "16.04"
+    
+    # Versions to skip (not LTS releases)
+    skips:
+      - "17.04"
+      - "19.04"

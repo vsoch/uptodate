@@ -1,0 +1,26 @@
+name: "uptodate-action"
+author: "Vanessa Sochat"
+description: "Check that repository assets are up to date"
+
+inputs:
+  root:
+    description: "Root path to provide to command. Can be a Dockerfile or directory."
+    required: false
+    default: ""
+
+  parser:
+    description: "Parser to run, one of dockerfile, or dockerhierarchy"
+    required: true
+
+  dry_run:
+    description: "Do a dry run (don't write, but show changes) one of true or false, defaults to false"
+    required: false
+    default: false
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+
+branding:
+  icon: "activity"
+  color: "blue"

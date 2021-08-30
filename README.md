@@ -1,5 +1,7 @@
 # Up to Date
 
+![docs/assets/img/uptodate.png](docs/assets/img/uptodate.png)
+
 This is a library and GitHub action to automatically update different assets in your
 repository. While the tool can be extended to "other kinds of things" to update, it is
 currently very Docker-centric. The tool includes the following commands:

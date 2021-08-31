@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       dockerfile_matrix: ${{ steps.dockerfile_check.outputs.dockerfile_matrix }}
-      dockerhierarchy_matrix: ${{ steps.dockerhieraerchy_check.outputs.dockerhierarchy_matrix }}
+      dockerhierarchy_matrix: ${{ steps.dockerhierarchy_check.outputs.dockerhierarchy_matrix }}
     steps:
     - name: Checkout Actions Repository
       uses: actions/checkout@v2

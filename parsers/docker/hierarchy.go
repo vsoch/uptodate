@@ -254,7 +254,7 @@ func (s *DockerHierarchyParser) Update(dryrun bool) error {
 			root.UpdateFrom(newDockerfile, miss)
 
 			// Add the result as updated to the list
-			result := parsers.Result{Filename: newDockerfile, Identifier: miss, Name: utils.RelativePath(root.Path, newDockerfile), Parser: "dockerhierarchy"}
+			result := parsers.Result{Filename: newDockerfile, Identifier: miss, Name: utils.RelativePath(newDockerfile, root.Path), Parser: "dockerhierarchy"}
 			results = append(results, result)
 
 		}

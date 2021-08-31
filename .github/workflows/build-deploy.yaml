@@ -1,0 +1,36 @@
+name: Build and Deploy
+
+on:
+  # Always test on pull request
+  pull_request: []
+
+  # Deploy on merge to main
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build Container
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2        
+
+      - name: Make Space For Build
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+
+      - name: Build and Tag Container
+        run: |
+            docker build -t ghcr.io/vsoch/uptodate .
+            version=$(docker run -it ghcr.io/vsoch/uptodate:latest version)
+            docker tag ghcr.io/vsoch/uptodate:latest ghcr.io/vsoch/uptodate:$(version)
+
+      - name: Login and Deploy Container
+        if: (github.event_name != 'pull_request')
+        run: |
+            docker images
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+            docker push --all-tags ghcr.io/vsoch/uptodate

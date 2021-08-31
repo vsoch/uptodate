@@ -149,6 +149,19 @@ Not including a filter defaults to looking for a numerical (something that has
 a minor and major) version and something else. See the [version regex](/user-guide/user-guide?id=version-regular-expressions)
 sections for more examples for your recipes.
 
+### Dockerfile List
+
+If you want to just list Dockerfiles discovered, use:
+
+```bash
+$ ./uptodate dockerfilelist
+/home/vanessa/go/src/github.com/vsoch/uptodate/Dockerfile
+/home/vanessa/go/src/github.com/vsoch/uptodate/shpc/Dockerfile
+/home/vanessa/go/src/github.com/vsoch/uptodate/shpc/Dockerfile.tcl
+/home/vanessa/go/src/github.com/vsoch/uptodate/tests/ubuntu/21.04/Dockerfile
+```
+
+
 ### Version Regular Expressions
 
 When selecting versions, you will need to customize your choice based on the container

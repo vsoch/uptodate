@@ -8,6 +8,7 @@ currently very Docker-centric. The tool includes the following commands:
  
   - [dockerfile](#dockerfile): update the `FROM` images in your Dockerfile to the latest hash
   - [dockerhierarchy](#docker-hierarchy): maintain a set of base images and check for new tags. When a new tag is found, create a new Dockerfile to build it.
+  - [dockerfilelist](#dockerfile-list): List all Dockerfiles discovered at some root.
   
 For each of the above, when paired with the [GitHub action](#github-action) and
 functionality to make updates and then open a pull request, it's possible to
@@ -238,6 +239,17 @@ Not including a filter defaults to looking for a numerical (something that has
 a minor and major) version and something else. See the [version regex](#version-regular-expressions)
 sections for more examples for your recipes.
 
+### dockerfilelist
+
+If you want to just list Dockerfiles discovered, use:
+
+```bash
+$ ./uptodate dockerfilelist
+/home/vanessa/go/src/github.com/vsoch/uptodate/Dockerfile
+/home/vanessa/go/src/github.com/vsoch/uptodate/shpc/Dockerfile
+/home/vanessa/go/src/github.com/vsoch/uptodate/shpc/Dockerfile.tcl
+/home/vanessa/go/src/github.com/vsoch/uptodate/tests/ubuntu/21.04/Dockerfile
+```
 
 ### Version Regular Expressions
 

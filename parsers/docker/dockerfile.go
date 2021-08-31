@@ -47,6 +47,7 @@ func (c *Command) EndIndex() int {
 
 // Dockerfile holds commands, path, and raw Dockerfile content
 type Dockerfile struct {
+	Root    string
 	Path    string
 	Raw     string
 	Cmds    map[string][]Command // Lookup by command type for quicker parsing
@@ -56,6 +57,17 @@ type Dockerfile struct {
 // Return the basename of the Dockerfile
 func (d *Dockerfile) BaseName() string {
 	return filepath.Base(d.Path)
+}
+
+// Return the relative path of the dockerfile, which we should strip for GHA
+func (d *Dockerfile) RelativePath() string {
+
+	relpath, err := filepath.Rel(d.Root, d.Path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return relpath
+
 }
 
 // AddCommands parses a set of df.Commands into uptodate Commands
@@ -249,10 +261,10 @@ func (s *DockerfileParser) CountUpdated() int {
 }
 
 // AddDockerfile adds a Dockerfile to the Parser
-func (s *DockerfileParser) AddDockerfile(path string) {
+func (s *DockerfileParser) AddDockerfile(root string, path string) {
 
 	// Create a new Dockerfile entry
-	dockerfile := Dockerfile{Path: path}
+	dockerfile := Dockerfile{Path: path, Root: root}
 	cmds, err := df.ParseFile(path)
 
 	// If we can't read for whatever reason, log the issue and continue
@@ -274,8 +286,8 @@ func (s *DockerfileParser) Parse(path string, dryrun bool) error {
 	paths, _ := utils.RecursiveFind(path, "Dockerfile", true)
 
 	// Add each path as a Dockerfile to the parser to update
-	for _, path = range paths {
-		s.AddDockerfile(path)
+	for _, subpath := range paths {
+		s.AddDockerfile(path, subpath)
 	}
 
 	// Keep track of updated count and set of results

@@ -1,117 +1,24 @@
-# Up to Date
-
-![docs/assets/img/uptodate.png](docs/assets/img/uptodate.png)
-
-This is a library and GitHub action to automatically update different assets in your
-repository. While the tool can be extended to "other kinds of things" to update, it is
-currently very Docker-centric. The tool includes the following commands:
- 
-  - [dockerfile](#dockerfile): update the `FROM` images in your Dockerfile to the latest hash
-  - [dockerhierarchy](#docker-hierarchy): maintain a set of base images and check for new tags. When a new tag is found, create a new Dockerfile to build it.
+# User's Guide
   
-For each of the above, when paired with the [GitHub action](#github-action) and
-functionality to make updates and then open a pull request, it's possible to
-have a repository that will run automated updates of container bases (`dockerfile`)
-and builds (`dockerhierarchy`). There are brief notes below, and you can read
-more at:
+## How it works
 
-⭐️ [The UpToDate Documentation](https://vsoch.github.io/uptodate) ⭐️
+This is a Go library that will look for `Dockerfile`s and (eventually) other assets
+in your repository and help you keep this up to date (hence the name!) This means for:
 
-## Usage
+ - `Dockerfile`s: we look for all Dockerfiles, find `FROM` lines, and make sure we are using the most up to date hash. We do not advance the tag itself (e.g., 18.04 will not be updated to 20.04) but just the sha256 sum, in the case that there are security updates, etc.
+ - A Docker Hierarchy: this is a structure that has some top level folder identified by an `uptodate.yaml` file, which is described [here](#uptodate-yaml-files). Within this folder are subfolders that correspond to tags, and the tool looks for new tags, and generates you a template Dockerfile to build if there are. 
+ 
+For both of the above, you can run the tool manually on the command line, or as a GitHub action.
+With the GitHub action you can make workflows to check for updates at some frequency, and open
+a pull request with updates to test if/when a new version is found and a file is created or updated.
 
-### GitHub Action
+## Commands
 
-To use the GitHub action, you can basically want to checkout your repository,
-and then select a parser and root to use:
+The following commands are available.
 
-```yaml
-name: update-containers
+### Dockerfile
 
-on:  
-  schedule:
-    - cron:  '0 4 * * *'
-
-jobs:
-  test:
-    name: Run Dockerfile Updater
-    runs-on: ubuntu-latest
-    outputs:
-      dockerfile_matrix: ${{ steps.dockerfile_check.outputs.dockerfile_matrix }}
-      dockerhierarchy_matrix: ${{ steps.dh_check.outputs.dockerhierarchy_matrix }}
-    steps:
-    - name: Checkout Actions Repository
-      uses: actions/checkout@v2
-    - name: Find and Update Dockerfiles in root
-      uses: vsoch/uptodate@main
-      id: dockerfile_check
-      with: 
-        parser: dockerfile
-
-    - name: Find and Update Docker Hierarchy in root
-      uses: vsoch/uptodate@main
-      id: dh_check
-      with: 
-        parser: dockerhierarchy
-```
-
-As the action is currently under development, we default to the main branch,
-shown above. When the action has releases we will use a release that also
-has a pre-built image to make the action run faster.
-You might then do something with this output later in the run, such as view it
-(or more advanced, pipe into matrix, which is the intended usage):
-
-```yaml
-  view:
-    needs:
-      - test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check Dockerfile result
-        env:
-          result: ${{ needs.test.outputs.dockerfile_matrix }}
-        run: echo ${result}
-
-      - name: Check Docker Hierarchy Result
-        env:
-          result: ${{ needs.test.outputs.dockerhierarchy_matrix }}
-        run: echo ${result}
-```
-
-The following inputs and outputs are provided by the action:
-
-#### Inputs
-
-| Name | Description | Required | Default |
-|------|-------------|----------|---------|
-| root | Root path to provide to command. Can be a Dockerfile or directory | false | "" |
-| parser | Parser to run, one of dockerfile, or dockerhierarchy | true | |
-| dry_run | Do a dry run (don't write, but show changes) one of true or false, defaults to false | false | false |
-
-For the root, if you leave it undefined, the root of your repository will be used, and discovery
-of relevant files (e.g., Dockerfile) will be done from there. If `dry_run` is added, no outputs
-are produced for next steps as no files are updated or created.
-
-#### Outputs
-
-| Name | Description |
-|------|-------------|
-| dockerfile_matrix | A matrix of Dockerfile changes with name and filename set to the Dockerfile name |
-| dockerhiearchy_matrix |A matrix of new Dockerfiles and the corresponding tag (Name) |
-
-See the [examples](.github/examples) folder for a more detailed example.
-
-### Install
-
-To build the library:
-
-```bash
-$ make
-```
-
-This will create a binary executable, `uptodate` that you can use directly or
-copy into a directory on your path.
-
-### dockerfile
+?> $ uptodate dockerfile
 
 This command will read one or more Dockerfiles, and tell us if the digest is
 up to date. When run by default, it will automatically update digests.
@@ -133,7 +40,7 @@ $ ./uptodate dockerfile /path/to/Dockerfile
     Modified: 0
 ```
 
-To update an entire directory of Dockerfile:
+To update an entire directory of `Dockerfile`s:
 
 ```bash
 $ ./uptodate dockerfile /path/to/directory
@@ -153,7 +60,11 @@ $ ./uptodate dockerhierarchy --dry-run
 
 To update your `Dockerfile`s we use [lookout](https://github.com/alecbcs/lookout) for updated versions 
 
-### dockerhierarchy
+
+### Docker Hierarchy
+
+?> $ uptodate dockerhierarchy
+
 
 Have you ever noticed that when people maintain a repository of Dockerfile, they
 tend to give it structure like:
@@ -235,9 +146,8 @@ container:
 ```
 
 Not including a filter defaults to looking for a numerical (something that has
-a minor and major) version and something else. See the [version regex](#version-regular-expressions)
+a minor and major) version and something else. See the [version regex](/user-guide/user-guide?id=version-regular-expressions)
 sections for more examples for your recipes.
-
 
 ### Version Regular Expressions
 
@@ -265,24 +175,3 @@ filter:
   # include anything that starts with 3.9 (e.g., 3.9.1)
   - "3.9*"
 ```
-
-### Development
-
-You can easily use the Makefile to also just build or run:
-
-```bash
-$ make
-
-# This won't include formatting to change the files
-$ make build
-```
-
-or you can use go directly!
-
-```bash
-$ go run main.go dockerfile
-```
-
-## Previous Art
-
- - [binoc](https://github.com/autumus/binoc): is another updating tool that uses lookout, and the main difference will be in the design.

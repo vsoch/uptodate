@@ -23,7 +23,7 @@ RUN apk add --no-cache binutils build-base linux-headers
 RUN make
 
 # Multistage build to only copy over the binary
-FROM alpine
+FROM alpine:latest@sha256:e1c082e3d3c45cccac829840a25941e679c25d438cc8412c2fa221cf1a824e6a
 
 RUN apk add --no-cache git bash
 WORKDIR /code

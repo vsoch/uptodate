@@ -24,3 +24,9 @@ runs:
 branding:
   icon: "activity"
   color: "blue"
+  
+outputs:
+  dockerfile_matrix:
+    description: A matrix of Dockerfile changes with name and filename set to the Dockerfile name
+  dockerhiearchy_matrix:
+    description: A matrix of new Dockerfiles and the corresponding tag (Name)

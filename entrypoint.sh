@@ -2,10 +2,6 @@
 
 set -e
 
-printf "Found files in workspace:\n"
-ls
-
-printf "Looking for uptodate install...\n"
 which uptodate
 
 COMMAND="uptodate ${INPUT_PARSER} "

@@ -46,4 +46,5 @@ func RunDockerfile(r *cmd.Root, c *cmd.Sub) {
 	// Update the dockerfiles with a Dockerfile parser
 	parser := docker.DockerfileParser{}
 	parser.Parse(args.Root[0], flags.DryRun)
+
 }

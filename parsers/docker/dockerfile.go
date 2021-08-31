@@ -3,12 +3,14 @@ package docker
 // The Dockerfile parser is optimized to find and update FROM statements
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
 
 	lookout "github.com/alecbcs/lookout/update"
 	df "github.com/asottile/dockerfile"
+	"github.com/vsoch/uptodate/parsers"
 	"github.com/vsoch/uptodate/utils"
 	"path/filepath"
 )
@@ -222,7 +224,7 @@ func (d *Dockerfile) Write() {
 
 	// For each Update, replace exact line with new version
 	for _, update := range d.Updates {
-		fmt.Printf("\nUpdating %s to %s\n", update.Original, update.Updated)
+		fmt.Printf("Updating %s to %s\n", update.Original, update.Updated)
 
 		// This ensures we keep the tag preserved for future checks, but change the file so it rebuilds
 		lines[update.LineNo] = "FROM " + update.Updated
@@ -276,8 +278,9 @@ func (s *DockerfileParser) Parse(path string, dryrun bool) error {
 		s.AddDockerfile(path)
 	}
 
-	// Keep track of updated count
+	// Keep track of updated count and set of results
 	count := 0
+	results := []parsers.Result{}
 
 	// Do we have updates? Count and write to file
 	if s.CountUpdated() > 0 {
@@ -288,6 +291,10 @@ func (s *DockerfileParser) Parse(path string, dryrun bool) error {
 
 			// Only write changes if it's not a dryrun
 			if !dryrun {
+
+				// Add a new result to print later
+				result := parsers.Result{Filename: dockerfile.Path, Name: dockerfile.Path, Parser: "dockerfile"}
+				results = append(results, result)
 				dockerfile.Write()
 			}
 			count += 1
@@ -302,6 +309,12 @@ func (s *DockerfileParser) Parse(path string, dryrun bool) error {
 	fmt.Printf("     Checked: %d\n", len(s.Dockerfiles))
 	if !dryrun {
 		fmt.Printf("    Modified: %d\n", count)
+	}
+
+	// If we are running in a GitHub Action, set the outputs
+	if utils.IsGitHubAction() {
+		outJson, _ := json.Marshal(results)
+		fmt.Printf("::set-output name=dockerfile_matrix::%s\n", string(outJson))
 	}
 	return nil
 }

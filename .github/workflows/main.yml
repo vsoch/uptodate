@@ -2,28 +2,40 @@ name: CI
 on: [pull_request]
 
 jobs:
-  run:
+  test:
+    name: Test Dockerfile Parsers
     runs-on: ubuntu-latest
+    outputs:
+      dockerfile_matrix: ${{ steps.dockerfile_check.outputs.dockerfile_matrix }}
+      dockerhierarchy_matrix: ${{ steps.dockerhierarchy_check.outputs.dockerhierarchy_matrix }}
     steps:
     - name: Checkout Actions Repository
       uses: actions/checkout@v2
     - name: Test dockerfile uptodate GitHub Action
       uses: ./
+      id: dockerfile_check
       with: 
         root: ./tests
         parser: dockerfile
 
-    - name: Check output files
-      run: |
-         sudo apt-get install -y tree
-         tree ./tests        
     - name: Test dockerhierarchy uptodate GitHub Action
       uses: ./
+      id: dockerhierarchy_check
       with: 
         root: ./tests
         parser: dockerhierarchy
 
-    - name: Check output files again
-      run: |
-         tree ./tests        
+  view:
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Dockerfile result
+        env:
+          result: ${{ needs.test.outputs.dockerfile_matrix }}
+        run: echo ${result}
 
+      - name: Check Docker Hierarchy Result
+        env:
+          result: ${{ needs.test.outputs.dockerhierarchy_matrix }}
+        run: echo ${result}

@@ -18,6 +18,7 @@ package docker
 // and eventually other preferences/metadata that will be nice to have.
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -207,6 +208,9 @@ func (s *DockerHierarchyParser) Load(path string) {
 // Update will look at existing tags, and compare to known and write new files
 func (s *DockerHierarchyParser) Update(dryrun bool) error {
 
+	// Save all results for later use
+	results := []parsers.Result{}
+
 	// For each root, derive updates!
 	for _, root := range s.Roots {
 
@@ -246,12 +250,25 @@ func (s *DockerHierarchyParser) Update(dryrun bool) error {
 		for _, miss := range missing {
 			newDockerfile := root.CopyDockerfile(dockerfile, miss)
 			root.UpdateFrom(newDockerfile, miss)
+
+			// Add the result as updated to the list
+			result := parsers.Result{Filename: newDockerfile, Name: miss, Parser: "dockerhierarchy"}
+			results = append(results, result)
+
 		}
 
 		// Update stats
 		fmt.Println("\n  ⭐️ Updated ⭐️")
 		fmt.Printf("     Updated versions for %s: %s\n", root.Container, missing)
 		fmt.Printf("     Present versions for %s: %s\n", root.Container, present)
+
 	}
+
+	// If we are running in a GitHub Action, set the outputs
+	if utils.IsGitHubAction() {
+		outJson, _ := json.Marshal(results)
+		fmt.Printf("::set-output name=dockerhierarchy_matrix::%s\n", string(outJson))
+	}
+
 	return nil
 }

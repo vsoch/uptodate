@@ -305,7 +305,7 @@ func (s *DockerfileParser) Parse(path string, dryrun bool) error {
 			if !dryrun {
 
 				// Add a new result to print later
-				result := parsers.Result{Filename: dockerfile.Path, Name: dockerfile.RelativePath(), Parser: "dockerfile"}
+				result := parsers.Result{Filename: dockerfile.Path, Name: dockerfile.Path, Parser: "dockerfile"}
 				results = append(results, result)
 				dockerfile.Write()
 			}

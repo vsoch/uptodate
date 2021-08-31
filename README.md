@@ -68,12 +68,12 @@ You might then do something with this output later in the run, such as view it
     steps:
       - name: Check Dockerfile result
         env:
-          result: ${{ fromJson(needs.test.outputs.dockerfile_matrix) }}
+          result: ${{ needs.test.outputs.dockerfile_matrix }}
         run: echo ${result}
 
       - name: Check Docker Hierarchy Result
         env:
-          result: ${{ fromJson(needs.test.outputs.dockerhierarchy_matrix) }}
+          result: ${{ needs.test.outputs.dockerhierarchy_matrix }}
         run: echo ${result}
 ```
 
@@ -129,7 +129,7 @@ $ ./uptodate dockerfile /path/to/Dockerfile
 
 
   ⭐️ Updated ⭐️
-     Checked: 2
+     Checked: 1
     Modified: 0
 ```
 

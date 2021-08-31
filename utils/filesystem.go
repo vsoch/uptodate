@@ -19,6 +19,16 @@ func GetPwd() string {
 	return path
 }
 
+// Get the realtive path of a file, relative to some root
+func RelativePath(root string, path string) string {
+
+	relpath, err := filepath.Rel(root, path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return relpath
+}
+
 // Copy a file from a source to a dest (intended for small files_
 func CopyFile(source string, dest string) {
 

@@ -36,6 +36,7 @@ import (
 
 // A DockerHierarchy holds a set of preferences for parsing docker hierarchies
 type DockerHierarchy struct {
+	Root           string
 	Path           string // path to uptodate.yaml
 	Container      string
 	Filters        []string
@@ -178,13 +179,13 @@ func (s *DockerHierarchyParser) Load(path string) {
 	paths, _ := utils.RecursiveFind(path, "uptodate.yaml", false)
 
 	// Look at each found path
-	for _, path = range paths {
-		conf := config.Load(path)
+	for _, subpath := range paths {
+		conf := config.Load(subpath)
 
 		// If the dockerhierarchy key is missing, we cannot parse!
 		var emptyDockerHierarchy config.DockerHierarchy
 		if reflect.DeepEqual(conf.DockerHierarchy, emptyDockerHierarchy) {
-			fmt.Printf("dockerhierarchy key is missing from %s, skipping.\n", path)
+			fmt.Printf("dockerhierarchy key is missing from %s, skipping.\n", subpath)
 			continue
 		}
 
@@ -198,7 +199,8 @@ func (s *DockerHierarchyParser) Load(path string) {
 			Filters:        conf.DockerHierarchy.Container.Filter,
 			StartAtVersion: conf.DockerHierarchy.Container.StartAt,
 			SkipVersions:   conf.DockerHierarchy.Container.Skips,
-			Path:           path}
+			Path:           subpath,
+			Root:           path}
 
 		// Add the hierarchy to those we know about
 		s.Roots = append(s.Roots, hier)
@@ -252,7 +254,7 @@ func (s *DockerHierarchyParser) Update(dryrun bool) error {
 			root.UpdateFrom(newDockerfile, miss)
 
 			// Add the result as updated to the list
-			result := parsers.Result{Filename: newDockerfile, Name: miss, Parser: "dockerhierarchy"}
+			result := parsers.Result{Filename: newDockerfile, Identifier: miss, Name: utils.RelativePath(root.Path, newDockerfile), Parser: "dockerhierarchy"}
 			results = append(results, result)
 
 		}

@@ -9,10 +9,13 @@ currently very Docker-centric. The tool includes the following commands:
   - [dockerfile](#dockerfile): update the `FROM` images in your Dockerfile to the latest hash
   - [dockerhierarchy](#docker-hierarchy): maintain a set of base images and check for new tags. When a new tag is found, create a new Dockerfile to build it.
   
-For each of the above, when paired with the GitHub action (not written yet) and
+For each of the above, when paired with the [GitHub action](#github-action) and
 functionality to make updates and then open a pull request, it's possible to
 have a repository that will run automated updates of container bases (`dockerfile`)
-and builds (`dockerhierarchy`).
+and builds (`dockerhierarchy`). There are brief notes below, and you can read
+more at:
+
+⭐️ [The UpToDate Documentation](https://vsoch.github.io/uptodate) ⭐️
 
 ## Usage
 
@@ -88,13 +91,14 @@ For the root, if you leave it undefined, the root of your repository will be use
 of relevant files (e.g., Dockerfile) will be done from there. If `dry_run` is added, no outputs
 are produced for next steps as no files are updated or created.
 
-#### Ouputs
+#### Outputs
 
 | Name | Description |
 |------|-------------|
 | dockerfile_matrix | A matrix of Dockerfile changes with name and filename set to the Dockerfile name |
 | dockerhiearchy_matrix |A matrix of new Dockerfiles and the corresponding tag (Name) |
 
+See the [examples](.github/examples) folder for a more detailed example.
 
 ### Install
 

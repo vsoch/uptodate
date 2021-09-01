@@ -26,7 +26,7 @@ jobs:
         run: |
             docker build -t ghcr.io/vsoch/uptodate .
             set -x
-            version=$(docker run -i ghcr.io/vsoch/uptodate:latest version)
+            version=$(docker run -i --entrypoint /code/uptodate ghcr.io/vsoch/uptodate:latest version)
             printf "Found version ${version}\n"
             docker tag ghcr.io/vsoch/uptodate:latest ghcr.io/vsoch/uptodate:$(version)
 

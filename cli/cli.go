@@ -2,6 +2,7 @@ package cli
 
 import (
 	"github.com/DataDrake/cli-ng/v2/cmd"
+	"github.com/vsoch/uptodate/version"
 )
 
 // GlobalFlags contains the flags for commands.
@@ -15,7 +16,7 @@ func init() {
 	Root = &cmd.Root{
 		Name:      "uptodate",
 		Short:     "Ensure repository assets are up to date.",
-		Version:   "1.0.0",
+		Version:   version.Version,
 		Copyright: "© 2021 Vanessa Sochat <@vsoch>",
 		License:   "Licensed under the Apache License, Version 2.0",
 	}

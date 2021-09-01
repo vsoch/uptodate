@@ -18,6 +18,7 @@ jobs:
     outputs:
       dockerfile_matrix: ${{ steps.dockerfile_check.outputs.dockerfile_matrix }}
       dockerhierarchy_matrix: ${{ steps.dh_check.outputs.dockerhierarchy_matrix }}
+      dockerfilelist_matrix: ${{ steps.dl_check.outputs.dockerfilelist_matrix }}
     steps:
     - name: Checkout Actions Repository
       uses: actions/checkout@v2
@@ -32,6 +33,12 @@ jobs:
       id: dh_check
       with: 
         parser: dockerhierarchy
+
+    - name: List all Dockerfile
+      uses: vsoch/uptodate@main
+      id: df_list
+      with: 
+        parser: dockerfilelist
 ```
 
 As the action is currently under development, we default to the main branch,
@@ -119,5 +126,6 @@ are produced for next steps as no files are updated or created.
 |------|-------------|
 | dockerfile_matrix | A matrix of Dockerfile changes with name and filename set to the Dockerfile name |
 | dockerhiearchy_matrix |A matrix of new Dockerfiles and the corresponding tag (Name) |
+| dockerfilelist_matrix | The result of Dockerfile list, akin to docker_file matrix but including all files |
 
 See the [examples](https://github.com/vsoch/uptodate/tree/main/.github/examples) folder for a more detailed example.

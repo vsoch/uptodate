@@ -8,6 +8,7 @@ jobs:
     outputs:
       dockerfile_matrix: ${{ steps.dockerfile_check.outputs.dockerfile_matrix }}
       dockerhierarchy_matrix: ${{ steps.dockerhierarchy_check.outputs.dockerhierarchy_matrix }}
+      dockerfilelist_matrix: ${{ steps.dockerfilelist_check.outputs.dockerfilelist_matrix }}
     steps:
     - name: Checkout Actions Repository
       uses: actions/checkout@v2
@@ -25,6 +26,13 @@ jobs:
         root: ./tests
         parser: dockerhierarchy
 
+    - name: Test dockerfile list uptodate GitHub Action
+      uses: ./
+      id: dockerfilelist_check
+      with: 
+        root: ./tests
+        parser: dockerfilelist
+
   view:
     needs:
       - test
@@ -33,6 +41,11 @@ jobs:
       - name: Check Dockerfile result
         env:
           result: ${{ needs.test.outputs.dockerfile_matrix }}
+        run: echo ${result}
+
+      - name: Check Dockerfile List Result
+        env:
+          result: ${{ needs.test.outputs.dockerfilelist_matrix }}
         run: echo ${result}
 
       - name: Check Docker Hierarchy Result

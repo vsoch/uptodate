@@ -12,6 +12,25 @@ For both of the above, you can run the tool manually on the command line, or as 
 With the GitHub action you can make workflows to check for updates at some frequency, and open
 a pull request with updates to test if/when a new version is found and a file is created or updated.
 
+## Install
+
+To install the library, first clone the repository:
+
+```bash
+$ git clone https://github.com/vsoch/uptodate
+```
+
+You will need a recent version of Go on your path. And then to build the library:
+
+```bash
+$ make
+```
+
+This will create a binary executable, `uptodate` that you can use directly or
+copy into a directory on your path. If you don't want to install, you can use
+the set of [containers](https://github.com/vsoch/uptodate/pkgs/container/uptodate) available on GitHub packages, or the [GitHub Action](https://vsoch.github.io/uptodate/docs/#/user-guide/github-action).
+
+
 ## Commands
 
 The following commands are available.
@@ -118,8 +137,13 @@ If you don't want to write new files, but rather preview what will be added, add
 $ ./uptodate dockerhierarchy --dry-run
 ```
 
-For the above, running the dockerhierarchy updater will see there is an uptodate.yaml in
-the folder, parse it, and then understand that the directory is ubuntu specific. It will
+#### Uptodate Yaml
+
+The `uptodate.yaml` file's presence in a root (such as the relative path `./ubuntu` above)
+indicates that the directory is structured like  a container URI, with tags as the subfolders. 
+However, you are free to put other subfolders within the directory that don't correspond to tags, such
+as matrix builds (described in a [following section](https://vsoch.github.io/uptodate/docs/#/user-guide/user-guide?id=docker-build)) that might use the image. For the above, running the dockerhierarchy updater will see there is an uptodate.yaml in
+the folder, parse it, and then read the `dockerhierarchy` section and understand that the directory is ubuntu specific. It will
 then derive all the existing tags for ubuntu (and by default use semver or semantic versioning
 to decide whether to include tags) and create new Dockerfile folders for those that
 are missing. The reason we need the `uptodate.yaml` is to store preference about
@@ -147,9 +171,11 @@ container:
 
 Not including a filter defaults to looking for a numerical (something that has
 a minor and major) version and something else. See the [version regex](/user-guide/user-guide?id=version-regular-expressions)
-sections for more examples for your recipes.
+sections for more examples for your recipes. 
 
 ### Dockerfile List
+
+?> $ uptodate dockerfilelist
 
 If you want to just list Dockerfiles discovered, use:
 
@@ -160,6 +186,21 @@ $ ./uptodate dockerfilelist
 /home/vanessa/go/src/github.com/vsoch/uptodate/shpc/Dockerfile.tcl
 /home/vanessa/go/src/github.com/vsoch/uptodate/tests/ubuntu/21.04/Dockerfile
 ```
+
+### Docker Build
+
+Docker build will be similar to the Docker Hierarchy updater in that it reads an `uptodate.yaml`
+and then generates one or more build matrices for it. The matrices can be parsed into
+a GitHub action to drive further container builds using one or more base images.
+
+**under development**
+
+### GitHub Action
+
+For all of the commands above, if you run them in a GitHub action, a matrix of results
+will be produced that you can pipe into a build matrix, or parse as a string for your
+own usage. See the [GitHub Action](https://vsoch.github.io/uptodate/docs/#/user-guide/github-action)
+for more details.
 
 
 ### Version Regular Expressions

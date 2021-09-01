@@ -5,12 +5,15 @@
 This is a Go library that will look for `Dockerfile`s and (eventually) other assets
 in your repository and help you keep this up to date (hence the name!) This means for:
 
- - `Dockerfile`s: we look for all Dockerfiles, find `FROM` lines, and make sure we are using the most up to date hash. We do not advance the tag itself (e.g., 18.04 will not be updated to 20.04) but just the sha256 sum, in the case that there are security updates, etc.
- - A Docker Hierarchy: this is a structure that has some top level folder identified by an `uptodate.yaml` file, which is described [here](#uptodate-yaml-files). Within this folder are subfolders that correspond to tags, and the tool looks for new tags, and generates you a template Dockerfile to build if there are. 
+ - A **Dockerfile** Updated: will look for all Dockerfiles, find `FROM` lines, and make sure we are using the most up to date hash. We do not advance the tag itself (e.g., 18.04 will not be updated to 20.04) but just the sha256 sum, in the case that there are security updates, etc.
+ - A **Docker Hierarchy**: is a structure that has some top level folder identified by an `uptodate.yaml` file, which is described [here](https://vsoch.github.io/uptodate/docs/#/user-guide/user-guide?id=uptodate-yaml). Within this folder are subfolders that correspond to tags, and the tool looks for new tags, and generates you a template Dockerfile to build if there are. 
+ - A **Dockerfile List**: updater will simply find all your Dockerfiles, and list them or provide them in a json output for a GitHub action for further parsing.
+ - A **Docker Build**: (under development) will provide a matrix of builds to pipe into a GitHub Action.
  
-For both of the above, you can run the tool manually on the command line, or as a GitHub action.
-With the GitHub action you can make workflows to check for updates at some frequency, and open
-a pull request with updates to test if/when a new version is found and a file is created or updated.
+For all of the above, you can run the tool manually on the command line, or as a GitHub action.
+For the last (Docker Build) the builds aren't currently performed for you (and you can [request this](https://github.com/vsoch/uptodate/issues) if you'd like it)
+as it is expected to be run in a GitHub Workflow. With the GitHub action you can make workflows to check for updates at some frequency, and open a pull request with updates to test if/when a new version is found and a file is created or updated.
+
 
 ## Install
 
@@ -18,6 +21,7 @@ To install the library, first clone the repository:
 
 ```bash
 $ git clone https://github.com/vsoch/uptodate
+$ cd uptodate
 ```
 
 You will need a recent version of Go on your path. And then to build the library:

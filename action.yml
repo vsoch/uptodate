@@ -18,8 +18,8 @@ inputs:
     default: false
 
 runs:
-  using: "docker"
-  image: "Dockerfile"
+  using: 'docker'
+  image: "ghcr.io/vsoch/uptodate:0.0.1"
 
 branding:
   icon: "activity"

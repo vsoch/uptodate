@@ -25,7 +25,9 @@ jobs:
       - name: Build and Tag Container
         run: |
             docker build -t ghcr.io/vsoch/uptodate .
+            set -x
             version=$(docker run ghcr.io/vsoch/uptodate:latest version)
+            printf "Found version ${version}\n"
             docker tag ghcr.io/vsoch/uptodate:latest ghcr.io/vsoch/uptodate:$(version)
 
       - name: Login and Deploy Container

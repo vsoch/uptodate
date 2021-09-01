@@ -28,7 +28,7 @@ jobs:
             set -x
             version=$(docker run -i --entrypoint /code/uptodate ghcr.io/vsoch/uptodate:latest version)
             printf "Found version ${version}\n"
-            docker tag ghcr.io/vsoch/uptodate:latest ghcr.io/vsoch/uptodate:$(version)
+            docker tag ghcr.io/vsoch/uptodate:latest ghcr.io/vsoch/uptodate:${version}
 
       - name: Login and Deploy Container
         if: (github.event_name != 'pull_request')

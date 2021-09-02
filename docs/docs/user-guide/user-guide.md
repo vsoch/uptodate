@@ -5,7 +5,7 @@
 This is a Go library that will look for `Dockerfile`s and (eventually) other assets
 in your repository and help you keep this up to date (hence the name!) This means for:
 
- - A **Dockerfile** Updated: will look for all Dockerfiles, find `FROM` lines, and make sure we are using the most up to date hash. We do not advance the tag itself (e.g., 18.04 will not be updated to 20.04) but just the sha256 sum, in the case that there are security updates, etc.
+ - A **Dockerfile** Updater: will look for all Dockerfiles, find `FROM` lines, and make sure we are using the most up to date hash. We do not advance the tag itself (e.g., 18.04 will not be updated to 20.04) but just the sha256 sum, in the case that there are security updates, etc.
  - A **Docker Hierarchy**: is a structure that has some top level folder identified by an `uptodate.yaml` file, which is described [here](https://vsoch.github.io/uptodate/docs/#/user-guide/user-guide?id=uptodate-yaml). Within this folder are subfolders that correspond to tags, and the tool looks for new tags, and generates you a template Dockerfile to build if there are. 
  - A **Dockerfile List**: updater will simply find all your Dockerfiles, and list them or provide them in a json output for a GitHub action for further parsing.
  - A **Docker Build**: (under development) will provide a matrix of builds to pipe into a GitHub Action.

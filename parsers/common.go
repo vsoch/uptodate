@@ -12,10 +12,11 @@ type Result struct {
 
 // A BuildResult needs more information (e.g., versions) to be given to a build matrix
 type BuildResult struct {
-	Name      string            `json:"name,omitempty"`
-	Filename  string            `json:"filename,omitempty"`
-	Parser    string            `json:"parser,omitempty"`
-	BuildArgs map[string]string `json:"buildargs,omitempty"`
+	Name          string            `json:"name,omitempty"`
+	Filename      string            `json:"filename,omitempty"`
+	Parser        string            `json:"parser,omitempty"`
+	BuildArgs     map[string]string `json:"buildargs,omitempty"`
+	CommandPrefix string            `json:"command_prefix,omitempty"`
 }
 
 // BuildVariable holds a key (name) and one or more values to parameterize over

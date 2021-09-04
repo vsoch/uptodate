@@ -1,0 +1,24 @@
+dockerbuild:
+  build_args:
+    # This is an example of a manual build arg, versions are required
+    llvm_version:
+      versions:
+       - "4.0.0"
+       - "5.0.1"
+       - "6.0.0"
+
+    # This is an example of a spack build arg, the name is the package
+    abyss_version:
+      name: abyss
+      type: spack
+
+    # This will be parsed by the Dockerfile parser, name is the container name
+    ubuntu_version:
+      name: ubuntu
+      type: container
+      startat: "16.04"
+      filter: 
+        - "^[0-9]+[.]04$" 
+      skips:
+      - "17.04"
+      - "19.04"

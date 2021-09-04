@@ -23,8 +23,6 @@ import (
 	"log"
 	"os"
 	fpath "path"
-	"regexp"
-	"strings"
 
 	df "github.com/asottile/dockerfile"
 	"github.com/vsoch/uptodate/config"
@@ -55,7 +53,7 @@ func (d *DockerHierarchy) DirName() string {
 	return filepath.Dir(d.Path)
 }
 
-// GetVersions of existing container within user preferences
+// GetLatestDockerfile of existing container within user preferences
 func (d *DockerHierarchy) GetLatestDockerfile(tag string) string {
 
 	// The Dockerfile should be under <root>/<tag>/Dockerfile
@@ -105,48 +103,6 @@ func (d *DockerHierarchy) UpdateFrom(path string, tag string) {
 	dockerfile.AddCommands(cmds)
 	dockerfile.ReplaceFroms(d.Container, tag)
 
-}
-
-// GetVersions of existing container within user preferences
-func (root *DockerHierarchy) GetVersions() []string {
-
-	// Get tags for current container image
-	tagsUrl := "https://crane.ggcr.dev/ls/" + root.Container
-	response := utils.GetRequest(tagsUrl)
-	tags := strings.Split(response, "\n")
-
-	// We look for tags based on filters (this is an OR between them)
-	filter := "(" + strings.Join(root.Filters, "|") + ")"
-	isVersionRegex, _ := regexp.Compile(filter)
-
-	// Derive list of those that match minimally a minor, major
-	versions := []string{}
-
-	// Also don't add until we hit the start at version, given defined
-	doAdd := true
-	if root.StartAtVersion != "" {
-		doAdd = false
-	}
-
-	// The tags should already be sorted
-	for _, text := range tags {
-
-		// Have we hit the requested start version, and can add now?
-		if root.StartAtVersion != "" && root.StartAtVersion == text && !doAdd {
-			doAdd = true
-		}
-
-		// Is the tag in the list to skip?
-		if utils.IncludesString(text, root.SkipVersions) {
-			continue
-		}
-
-		// If we are adding, great! Add here to our list
-		if doAdd && isVersionRegex.MatchString(text) {
-			versions = append(versions, text)
-		}
-	}
-	return versions
 }
 
 // Dockerfile holds commands, path, and raw Dockerfile content
@@ -217,7 +173,7 @@ func (s *DockerHierarchyParser) Update(dryrun bool) error {
 	for _, root := range s.Roots {
 
 		// Get all versions (tags) based on filters and user preferences
-		versions := root.GetVersions()
+		versions := GetVersions(root.Container, root.Filters, root.StartAtVersion, root.SkipVersions)
 
 		// At this point we have a list of versions we want.
 		// We now compare existing to those that need to be created

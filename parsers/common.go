@@ -10,5 +10,19 @@ type Result struct {
 	Identifier string `json:"id,omitempty"`
 }
 
+// A BuildResult needs more information (e.g., versions) to be given to a build matrix
+type BuildResult struct {
+	Name      string            `json:"name,omitempty"`
+	Filename  string            `json:"filename,omitempty"`
+	Parser    string            `json:"parser,omitempty"`
+	BuildArgs map[string]string `json:"buildargs,omitempty"`
+}
+
+// BuildVariable holds a key (name) and one or more values to parameterize over
+type BuildVariable struct {
+	Name   string
+	Values []string
+}
+
 // VersionRegex matches a major and minor, optional third group (not semver)
 var VersionRegex = "[0-9]+[.][0-9]+(?:[.][0-9]+)?"

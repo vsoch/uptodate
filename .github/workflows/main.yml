@@ -10,6 +10,7 @@ jobs:
       dockerhierarchy_matrix: ${{ steps.dockerhierarchy_check.outputs.dockerhierarchy_matrix }}
       dockerfilelist_matrix: ${{ steps.dockerfilelist_check.outputs.dockerfilelist_matrix }}
       dockerbuild_matrix: ${{ steps.dockerbuild_check.outputs.dockerbuild_matrix }}
+      buildargskip_matrix: ${{ steps.buildargskip_check.outputs.dockerfilelist_matrix }}
     steps:
     - name: Checkout Actions Repository
       uses: actions/checkout@v2
@@ -34,6 +35,14 @@ jobs:
         root: ./tests
         parser: dockerfilelist
 
+    - name: Test dockerfile list with skipping build args
+      uses: ./
+      id: buildargskip_check
+      with: 
+        root: ./tests
+        parser: dockerfilelist
+        flags: "--no-build-args"
+
     - name: Test dockerbuild matrix uptodate GitHub Action
       uses: ./
       id: dockerbuild_check
@@ -54,6 +63,11 @@ jobs:
       - name: Check Dockerfile List Result
         env:
           result: ${{ needs.test.outputs.dockerfilelist_matrix }}
+        run: echo ${result}
+
+      - name: Check Dockerfile List Result skippin build args
+        env:
+          result: ${{ needs.test.outputs.buildargskip_matrix }}
         run: echo ${result}
 
       - name: Check Docker Hierarchy Result

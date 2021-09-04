@@ -12,6 +12,7 @@ type DockerfileListArgs struct {
 }
 
 type DockerfileListFlags struct {
+	IncludeArgs bool `long:"no-build-args" desc:"Do not include Dockerfile with build args (defaults to false)"`
 }
 
 // Dockerfile updates one or more Dockerfile
@@ -32,6 +33,7 @@ func init() {
 func RunDockerfileList(r *cmd.Root, c *cmd.Sub) {
 
 	args := c.Args.(*DockerfileListArgs)
+	flags := c.Flags.(*DockerfileListFlags)
 
 	// If no root provided, assume parsing the PWD
 	if len(args.Root) == 0 {
@@ -40,6 +42,6 @@ func RunDockerfileList(r *cmd.Root, c *cmd.Sub) {
 
 	// Update the dockerfiles with a Dockerfile parser
 	parser := docker.DockerfileListParser{}
-	parser.Parse(args.Root[0])
+	parser.Parse(args.Root[0], flags.IncludeArgs)
 
 }

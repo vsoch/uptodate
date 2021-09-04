@@ -12,7 +12,7 @@ import (
 )
 
 // GetVersions of existing container within user preferences
-func GetVersions(container string, filters []string, startAtVersion string, skipVersions []string) []string {
+func GetVersions(container string, filters []string, startAtVersion string, skipVersions []string, includeVersions []string) []string {
 
 	// Get tags for current container image
 	tagsUrl := "https://crane.ggcr.dev/ls/" + container
@@ -34,6 +34,12 @@ func GetVersions(container string, filters []string, startAtVersion string, skip
 
 	// The tags should already be sorted
 	for _, text := range tags {
+
+		// If it's in the list to include, include no matter what
+		if utils.IncludesString(text, includeVersions) {
+			versions = append(versions, text)
+			continue
+		}
 
 		// Have we hit the requested start version, and can add now?
 		if startAtVersion != "" && startAtVersion == text && !doAdd {

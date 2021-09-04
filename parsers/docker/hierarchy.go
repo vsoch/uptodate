@@ -34,13 +34,14 @@ import (
 
 // A DockerHierarchy holds a set of preferences for parsing docker hierarchies
 type DockerHierarchy struct {
-	Root           string
-	Path           string // path to uptodate.yaml
-	Container      string
-	Filters        []string
-	StartAtVersion string
-	SkipVersions   []string
-	tags           []string
+	Root            string
+	Path            string // path to uptodate.yaml
+	Container       string
+	Filters         []string
+	StartAtVersion  string
+	SkipVersions    []string
+	IncludeVersions []string
+	tags            []string
 }
 
 // Return the basename of the specific root
@@ -152,11 +153,12 @@ func (s *DockerHierarchyParser) Load(path string) {
 
 		// Create a new DockerHierarchy, set name and filters
 		hier := DockerHierarchy{Container: conf.DockerHierarchy.Container.Name,
-			Filters:        conf.DockerHierarchy.Container.Filter,
-			StartAtVersion: conf.DockerHierarchy.Container.StartAt,
-			SkipVersions:   conf.DockerHierarchy.Container.Skips,
-			Path:           subpath,
-			Root:           path}
+			Filters:         conf.DockerHierarchy.Container.Filter,
+			StartAtVersion:  conf.DockerHierarchy.Container.StartAt,
+			SkipVersions:    conf.DockerHierarchy.Container.Skips,
+			IncludeVersions: conf.DockerHierarchy.Container.Includes,
+			Path:            subpath,
+			Root:            path}
 
 		// Add the hierarchy to those we know about
 		s.Roots = append(s.Roots, hier)
@@ -173,7 +175,7 @@ func (s *DockerHierarchyParser) Update(dryrun bool) error {
 	for _, root := range s.Roots {
 
 		// Get all versions (tags) based on filters and user preferences
-		versions := GetVersions(root.Container, root.Filters, root.StartAtVersion, root.SkipVersions)
+		versions := GetVersions(root.Container, root.Filters, root.StartAtVersion, root.SkipVersions, root.IncludeVersions)
 
 		// At this point we have a list of versions we want.
 		// We now compare existing to those that need to be created

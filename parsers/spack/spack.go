@@ -63,7 +63,7 @@ type SpackDependency struct {
 }
 
 // Get Versions of a spack package relevant to a set of user preferences
-func (s *SpackPackage) GetVersions(filters []string, startAtVersion string, skipVersions []string) []string {
+func (s *SpackPackage) GetVersions(filters []string, startAtVersion string, skipVersions []string, includeVersions []string) []string {
 
 	// Final list of versions we will provide
 	versions := []string{}
@@ -80,6 +80,12 @@ func (s *SpackPackage) GetVersions(filters []string, startAtVersion string, skip
 
 	// The tags should already be sorted
 	for _, version := range s.Versions {
+
+		// If it's in the list to include, include no matter what
+		if utils.IncludesString(version.Name, includeVersions) {
+			versions = append(versions, version.Name)
+			continue
+		}
 
 		// Have we hit the requested start version, and can add now?
 		if startAtVersion != "" && startAtVersion == version.Name && !doAdd {

@@ -59,7 +59,7 @@ func parseContainerBuildArg(key string, buildarg config.BuildArg) []parsers.Buil
 
 		// Otherwise we want to be generating a list of tags (versions)
 	} else {
-		versions := GetVersions(buildarg.Name, buildarg.Filter, buildarg.StartAt, buildarg.Skips)
+		versions := GetVersions(buildarg.Name, buildarg.Filter, buildarg.StartAt, buildarg.Skips, buildarg.Includes)
 		newVar := parsers.BuildVariable{Name: key, Values: versions}
 		vars = append(vars, newVar)
 
@@ -83,7 +83,7 @@ func parseSpackBuildArg(key string, buildarg config.BuildArg) []parsers.BuildVar
 	}
 
 	// Get versions based on user preferences
-	versions := pkg.GetVersions(buildarg.Filter, buildarg.StartAt, buildarg.Skips)
+	versions := pkg.GetVersions(buildarg.Filter, buildarg.StartAt, buildarg.Skips, buildarg.Includes)
 	newVar := parsers.BuildVariable{Name: key, Values: versions}
 	vars := []parsers.BuildVariable{newVar}
 	return vars

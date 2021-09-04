@@ -11,6 +11,8 @@ jobs:
     outputs:
       dockerfile_matrix: ${{ steps.dockerfile_check.outputs.dockerfile_matrix }}
       dockerhierarchy_matrix: ${{ steps.dockerhierarchy_check.outputs.dockerhierarchy_matrix }}
+      dockerfilelist_matrix: ${{ steps.dl_list.outputs.dockerfilelist_matrix }}
+      dockerbuild_matrix: ${{ steps.dbuild.outputs.dockerbuild_matrix }}
     steps:
     - name: Checkout Actions Repository
       uses: actions/checkout@v2
@@ -28,6 +30,20 @@ jobs:
         root: ./tests
         parser: dockerhierarchy
 
+    - name: Test docker build uptodate GitHub Action
+      uses: ./
+      id: dbuild
+      with: 
+        root: ./tests
+        parser: dockerbuild
+
+    - name: Test dockerfile list uptodate GitHub Action
+      uses: ./
+      id: dockerfilelist_check
+      with: 
+        root: ./tests
+        parser: dockerfilelist
+
   view:
     needs:
       - test
@@ -41,4 +57,14 @@ jobs:
       - name: Check Docker Hierarchy Result
         env:
           result: ${{ needs.test.outputs.dockerhierarchy_matrix }}
+        run: echo ${result}
+        
+      - name: Check Docker Build Result
+        env:
+          result: ${{ needs.test.outputs.dockerbuild_matrix }}
+        run: echo ${result}
+        
+      - name: Check Dockerfile result
+        env:
+          result: ${{ needs.test.outputs.dockerfilelist_matrix }}
         run: echo ${result}

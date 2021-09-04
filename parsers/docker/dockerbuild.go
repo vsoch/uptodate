@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"path/filepath"
 	"reflect"
 	"strings"
 
@@ -100,7 +101,8 @@ func (s *DockerBuildParser) Parse(path string) error {
 
 		// We must have a DockerBuild to continue! This checks against an empty one
 		if reflect.DeepEqual(conf.DockerBuild, config.DockerBuild{}) {
-			log.Fatal("dockerbuild section not detected in config!")
+			log.Printf("dockerbuild section not detected in config, skipping %s\n", subpath)
+			continue
 		}
 
 		// Prepare lists of values to create a matrix over
@@ -126,7 +128,8 @@ func (s *DockerBuildParser) Parse(path string) error {
 		results := []parsers.BuildResult{}
 
 		// Find Dockerfile in subpath
-		dockerfiles, _ := utils.RecursiveFind(path, "Dockerfile", true)
+		dirname := filepath.Dir(subpath)
+		dockerfiles, _ := utils.RecursiveFind(dirname, "Dockerfile", true)
 
 		// We need a new build for each Dockerfile found (hopefully not many)
 		for _, dockerfile := range dockerfiles {

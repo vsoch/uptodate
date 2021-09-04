@@ -152,25 +152,30 @@ then derive all the existing tags for ubuntu (and by default use semver or seman
 to decide whether to include tags) and create new Dockerfile folders for those that
 are missing. The reason we need the `uptodate.yaml` is to store preference about
 tags to skip, or more generally, a pattern to match. For containers with more complex
-names that don't map nicely to a folder, we can just write it there. Here is an example,
+names that don't map nicely to a folder, we can just write it there. Here is an example for the `dockerhierarchy` updater,
 with a few examples of filters you might use:
 
 ```yaml
-container:
-  name: ubuntu
-  filter: 
-    # Don't include anything that starts with arm
-    - "^((?!arm).)*$"
-    # include anything that starts with 3.9 (e.g., 3.9.1)
-    - "3.9*"
+dockerhierarchy:
+  container:
+    name: ubuntu
+    filter: 
+      # Don't include anything that starts with arm
+      - "^((?!arm).)*$"
+      # include anything that starts with 3.9 (e.g., 3.9.1)
+      - "3.9*"
 
-  # The earliest version that should be used
-  startat: 16.04
+    # The earliest version that should be used
+    startat: 16.04
 
-  # Skip these versions (e.g., not long term releases or LTS)
-  skips:
-    - "17.04"
-    - "19.04"
+    # Skip these versions (e.g., not long term releases or LTS)
+    skips:
+      - "17.04"
+      - "19.04"
+
+    # Include these versions no matter what
+    includes:
+     - "21.10"
 ```
 
 Not including a filter defaults to looking for a numerical (something that has

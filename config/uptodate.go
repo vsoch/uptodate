@@ -8,10 +8,11 @@ import (
 )
 
 type Container struct {
-	Name    string   `yaml:"name"`
-	Filter  []string `yaml:"filter,omitempty"`
-	StartAt string   `yaml:"startat,omitempty"`
-	Skips   []string `yaml:"skips,omitempty"`
+	Name     string   `yaml:"name"`
+	Filter   []string `yaml:"filter,omitempty"`
+	StartAt  string   `yaml:"startat,omitempty"`
+	Skips    []string `yaml:"skips,omitempty"`
+	Includes []string `yaml:"includes,omitempty"`
 }
 
 type DockerHierarchy struct {
@@ -33,6 +34,7 @@ type BuildArg struct {
 	Values   []string          `yaml:"values,omitempty"`
 	Filter   []string          `yaml:"filter,omitempty"`
 	Skips    []string          `yaml:"skips,omitempty"`
+	Includes []string          `yaml:"includes,omitempty"`
 	Params   map[string]string `yaml:"params,omitempty"`
 }
 

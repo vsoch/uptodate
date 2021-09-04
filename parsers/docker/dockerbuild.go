@@ -11,6 +11,7 @@ import (
 
 	"github.com/vsoch/uptodate/config"
 	"github.com/vsoch/uptodate/parsers"
+	"github.com/vsoch/uptodate/parsers/spack"
 	"github.com/vsoch/uptodate/utils"
 )
 
@@ -69,11 +70,21 @@ func parseContainerBuildArg(key string, buildarg config.BuildArg) []parsers.Buil
 // parseSpackBuildArg parses a spack build arg
 func parseSpackBuildArg(key string, buildarg config.BuildArg) []parsers.BuildVariable {
 
-	// Prepare a new result
-	// TODO need to develop this
-	fmt.Println("SPACK")
-	fmt.Println(buildarg)
-	vars := []parsers.BuildVariable{}
+	// Get versions for current spack package
+	packageUrl := "https://spack.github.io/packages/data/packages/" + buildarg.Name + ".json"
+	response := utils.GetRequest(packageUrl)
+
+	// The response gets parsed into a spack package
+	pkg := spack.SpackPackage{}
+	err := json.Unmarshal([]byte(response), &pkg)
+	if err != nil {
+		log.Fatalf("Issue unmarshalling %s\n", packageUrl)
+	}
+
+	// Get versions based on user preferences
+	versions := pkg.GetVersions(buildarg.Filter, buildarg.StartAt, buildarg.Skips)
+	newVar := parsers.BuildVariable{Name: key, Values: versions}
+	vars := []parsers.BuildVariable{newVar}
 	return vars
 }
 

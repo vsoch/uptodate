@@ -7,6 +7,11 @@ dockerbuild:
        - "5.0.1"
        - "6.0.0"
 
+    # This is an example of a spack build arg, the name is the package
+    abyss_version:
+      name: abyss
+      type: spack
+
     # This will be parsed by the Dockerfile parser, name is the container name
     ubuntu_version:
       name: ubuntu

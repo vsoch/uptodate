@@ -203,12 +203,17 @@ For example, let's say that we start with this configuration file:
 ```yaml
 dockerbuild:
   build_args:
-    # This is an example of a manual build arg, versions are required
+    # This is an example of a manual build arg, versions (or values) are required
     llvm_version:
       versions:
        - "4.0.0"
        - "5.0.1"
        - "6.0.0"
+
+    # This is an example of a spack build arg, the name is the package
+    abyss_version:
+      name: abyss
+      type: spack
 
     # This will be parsed by the Dockerfile parser, name is the container name
     ubuntu_version:
@@ -223,12 +228,12 @@ dockerbuild:
 ```
 
 You'll see the primary section of interest is under `dockerbuild`, and under this
-we have two build args. There are three `type` of build args:
+we have theww build args. There are three `type` of build args:
 
 
  - *manual*: meaning you define a name and a list of versions or values, no extra parsing or updating done!
+ - *spack*: derive a list of versions from spack, with the same options to start at, filter, skip, etc. The data is parsed from [the spack packages interface](https://spack.github.io/packages/) that is updated nightly from spack develop.
  - *container*: meaning you define similar fields to if you were asking to update Dockerfile froms - a container name, startat (version), filter, and versions to skip. If you include a tag with your container, we will simply update digests (and keep the same tag) so you'll get a much smaller matrix.
- - *spack*: not developed yet, will get the "latest" version from spack.
  
 
 ### GitHub Action

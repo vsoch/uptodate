@@ -3,52 +3,78 @@ package docker
 // The Dockerfile parser is optimized to find and update FROM statements
 
 import (
-	/*	"encoding/json"*/
+	"encoding/json"
 	"fmt"
+	"log"
+	"reflect"
+	"strings"
+
 	"github.com/vsoch/uptodate/config"
 	"github.com/vsoch/uptodate/parsers"
 	"github.com/vsoch/uptodate/utils"
-	"log"
-	"reflect"
 )
 
-// BuildArg is a key with one or more values (can be versions)
-type BuildArg struct {
-
-	// Versions are optional, and only valid for manual
-	Name   string   `json:"name"`
-	Values []string `json:"values"`
-}
-
-// BuildArgSpack expects metadata for building from spack
-type BuildArgSpack struct {
-	Type     string   `json:"type"`
-	Name     string   `json:"name,omitempty"`
-	StartAt  string   `json:"startat,omitempty"`
-	Versions []string `json:"versions,omitempty"`
-	Filter   []string `json:"filter,omitempty"`
-	Skips    []string `json:"skips,omitempty"`
-	AsView   bool     `json:"view,omitempty"`
-}
-
-// BuildArgContainer updates container tags, etc.
-type BuildArgContainer struct {
-	Type     string   `json:"type"`
-	Name     string   `json:"name,omitempty"`
-	StartAt  string   `json:"startat,omitempty"`
-	Versions []string `json:"versions,omitempty"`
-	Filter   []string `json:"filter,omitempty"`
-	Skips    []string `json:"skips,omitempty"`
-}
-
-// DockerBuild holds one or more build args
-type DockerBuild struct {
-	BuildArgs []map[string]interface{}
-}
-
 // DockerBuildParser holds one or more Docker Builds
-type DockerBuildParser struct {
-	Builds []DockerBuild
+type DockerBuildParser struct{}
+
+// parseBuildArg parses a standard build arg
+func parseBuildArg(key string, buildarg config.BuildArg) []parsers.BuildVariable {
+
+	// We will return a list of BuildVariable
+	vars := []parsers.BuildVariable{}
+
+	// The values can be versions or values (or both I suppose)
+	if len(buildarg.Values) > 0 {
+		buildvar := parsers.BuildVariable{Name: key, Values: buildarg.Values}
+		vars = append(vars, buildvar)
+	}
+
+	if len(buildarg.Versions) > 0 {
+		buildvar := parsers.BuildVariable{Name: key, Values: buildarg.Versions}
+		vars = append(vars, buildvar)
+	}
+
+	return vars
+}
+
+// parseContainerBuildArg parses a spack build arg
+func parseContainerBuildArg(key string, buildarg config.BuildArg) []parsers.BuildVariable {
+
+	// We will return a list of BuildVariable
+	vars := []parsers.BuildVariable{}
+
+	// The container is required to have the name
+	if buildarg.Name == "" {
+		log.Fatalf("A container buildarg requires a name: %s\n", buildarg)
+	}
+
+	// If the name has a tag, we just update the version. No further parsing
+	if strings.Contains(buildarg.Name, ":") {
+		fromValue := []string{buildarg.Name}
+		update := UpdateFrom(fromValue)
+		newVar := parsers.BuildVariable{Name: key, Values: []string{update.Updated}}
+		vars = append(vars, newVar)
+
+		// Otherwise we want to be generating a list of tags (versions)
+	} else {
+		versions := GetVersions(buildarg.Name, buildarg.Filter, buildarg.StartAt, buildarg.Skips)
+		newVar := parsers.BuildVariable{Name: key, Values: versions}
+		vars = append(vars, newVar)
+
+	}
+	return vars
+
+}
+
+// parseSpackBuildArg parses a spack build arg
+func parseSpackBuildArg(key string, buildarg config.BuildArg) []parsers.BuildVariable {
+
+	// Prepare a new result
+	// TODO need to develop this
+	fmt.Println("SPACK")
+	fmt.Println(buildarg)
+	vars := []parsers.BuildVariable{}
+	return vars
 }
 
 // Entrypoint to parse one or more Docker build matrices
@@ -66,22 +92,87 @@ func (s *DockerBuildParser) Parse(path string) error {
 			log.Fatal("dockerbuild section not detected in config!")
 		}
 
-		// Prepare a matrix of json results
-		results := parsers.BuildResult{}
+		// Prepare lists of values to create a matrix over
+		vars := []parsers.BuildVariable{}
 
 		for key, buildarg := range conf.DockerBuild.BuildArgs {
 
 			// If it has a type, it either is that type, or we map to another type
-			// TODO each of these needs to be parsed, then output matrix!
 			if buildarg.Type == "container" {
-				fmt.Println("Found container build arg", key, buildarg)
+				result := parseContainerBuildArg(key, buildarg)
+				vars = append(vars, result...)
 			} else if buildarg.Type == "spack" {
-				fmt.Println("Found spack build arg", key, buildarg)
+				result := parseSpackBuildArg(key, buildarg)
+				vars = append(vars, result...)
 			} else {
-				fmt.Println("Found regular build arg", key, buildarg)
+				result := parseBuildArg(key, buildarg)
+				vars = append(vars, result...)
 			}
 		}
-		fmt.Println(results)
+
+		// Create build matrix and format into build results
+		matrix := GetBuildMatrix(vars)
+		results := []parsers.BuildResult{}
+
+		// Find Dockerfile in subpath
+		dockerfiles, _ := utils.RecursiveFind(path, "Dockerfile", true)
+
+		// We need a new build for each Dockerfile found (hopefully not many)
+		for _, dockerfile := range dockerfiles {
+			for _, entry := range matrix {
+				newResult := parsers.BuildResult{BuildArgs: entry, Filename: dockerfile, Parser: "dockerbuild", Name: subpath}
+				results = append(results, newResult)
+			}
+		}
+
+		// Parse into json
+		outJson, _ := json.Marshal(results)
+
+		// If we are running in a GitHub Action, set the outputs
+
+		if utils.IsGitHubAction() {
+			fmt.Printf("::set-output name=dockerbuild_matrix::%s\n", string(outJson))
+		} else {
+			fmt.Printf("%s\n", string(outJson))
+		}
 	}
 	return nil
+}
+
+// GetBuildMatrix generates a build matrix, across all variable options
+func GetBuildMatrix(vars []parsers.BuildVariable) []map[string]string {
+
+	// The final result is a list of key value pairs
+	results := []map[string]string{}
+
+	for _, buildvar := range vars {
+		newResults := getBuildMatrix(buildvar.Name, buildvar.Values, results)
+		results = append(results, newResults...)
+	}
+	return results
+}
+
+// getBuildMatrix is a helper function to grow a list of maps with each set of params
+func getBuildMatrix(newkey string, values []string, previous []map[string]string) []map[string]string {
+
+	// Special case when no lists yet - we need to return a list of maps with all versions
+	if len(previous) == 0 {
+		for _, value := range values {
+			entry := make(map[string]string)
+			entry[newkey] = value
+			previous = append(previous, entry)
+		}
+		return previous
+	}
+
+	updated := []map[string]string{}
+
+	// Add each value to each existing
+	for _, value := range values {
+		for _, entry := range previous {
+			entry[newkey] = value
+			updated = append(updated, entry)
+		}
+	}
+	return updated
 }

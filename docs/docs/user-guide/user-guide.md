@@ -8,7 +8,7 @@ in your repository and help you keep this up to date (hence the name!) This mean
  - A **Dockerfile** Updater: will look for all Dockerfiles, find `FROM` lines, and make sure we are using the most up to date hash. We do not advance the tag itself (e.g., 18.04 will not be updated to 20.04) but just the sha256 sum, in the case that there are security updates, etc.
  - A **Docker Hierarchy**: is a structure that has some top level folder identified by an `uptodate.yaml` file, which is described [here](https://vsoch.github.io/uptodate/docs/#/user-guide/user-guide?id=uptodate-yaml). Within this folder are subfolders that correspond to tags, and the tool looks for new tags, and generates you a template Dockerfile to build if there are. 
  - A **Dockerfile List**: updater will simply find all your Dockerfiles, and list them or provide them in a json output for a GitHub action for further parsing.
- - A **Docker Build**: (under development) will provide a matrix of builds to pipe into a GitHub Action.
+ - A **Docker Build**: provides a matrix of builds to pipe into a GitHub Action.
  
 For all of the above, you can run the tool manually on the command line, or as a GitHub action.
 For the last (Docker Build) the builds aren't currently performed for you (and you can [request this](https://github.com/vsoch/uptodate/issues) if you'd like it)
@@ -194,10 +194,42 @@ $ ./uptodate dockerfilelist
 ### Docker Build
 
 Docker build will be similar to the Docker Hierarchy updater in that it reads an `uptodate.yaml`
-and then generates one or more build matrices for it. The matrices can be parsed into
+and then generates one or more build matrices for it. The matrices include all versions or other variables
+that you've specified, along with the Dockerfile that are discovered under the root where
+the `uptodate.yaml` is. The matrices can be parsed into
 a GitHub action to drive further container builds using one or more base images.
+For example, let's say that we start with this configuration file:
 
-**under development**
+```yaml
+dockerbuild:
+  build_args:
+    # This is an example of a manual build arg, versions are required
+    llvm_version:
+      versions:
+       - "4.0.0"
+       - "5.0.1"
+       - "6.0.0"
+
+    # This will be parsed by the Dockerfile parser, name is the container name
+    ubuntu_version:
+      name: ubuntu
+      type: container
+      startat: "16.04"
+      filter: 
+        - "^[0-9]+[.]04$" 
+      skips:
+      - "17.04"
+      - "19.04"
+```
+
+You'll see the primary section of interest is under `dockerbuild`, and under this
+we have two build args. There are three `type` of build args:
+
+
+ - *manual*: meaning you define a name and a list of versions or values, no extra parsing or updating done!
+ - *container*: meaning you define similar fields to if you were asking to update Dockerfile froms - a container name, startat (version), filter, and versions to skip. If you include a tag with your container, we will simply update digests (and keep the same tag) so you'll get a much smaller matrix.
+ - *spack*: not developed yet, will get the "latest" version from spack.
+ 
 
 ### GitHub Action
 

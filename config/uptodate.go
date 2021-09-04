@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"github.com/mitchellh/mapstructure"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
@@ -86,7 +85,6 @@ type Conf struct {
 }
 
 func Load(yamlfile string) Conf {
-	fmt.Println(yamlfile)
 	yamlContent, err := ioutil.ReadFile(yamlfile)
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)

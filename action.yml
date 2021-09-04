@@ -21,6 +21,11 @@ runs:
   using: "docker"
   image: "Dockerfile"
 
+# update when works!
+#runs:
+#  using: 'docker'
+#  image: 'docker://ghcr.io/vsoch/uptodate:latest'
+
 branding:
   icon: "activity"
   color: "blue"

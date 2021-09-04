@@ -206,11 +206,6 @@ jobs:
         env:
           result: ${{ needs.test.outputs.dockerfilelist_matrix }}
         run: echo ${result}
-
-      - name: Check Docker Hierarchy Result
-        env:
-          result: ${{ needs.test.outputs.dockerhierarchy_matrix }}
-        run: echo ${result}
 ```
 
 Or used in a matrix:
@@ -224,6 +219,12 @@ jobs:
     steps:
     - name: Checkout Actions Repository
       uses: actions/checkout@v2
+
+    - name: List all Dockerfile
+      uses: vsoch/uptodate@main
+      id: df_list
+      with: 
+        parser: dockerfilelist
          
   build:
     needs:
@@ -251,7 +252,42 @@ A Docker Build is similar to a Docker Hierarchy, except instead of putting instr
 in the `uptodate.yaml` for how to build base images, we have a `dockerbuild` section
 that describes a matrix.
 
-**under development**
+
+```yaml
+name: docker-build-matrix
+
+on:  
+  schedule:
+    - cron:  '0 2 * * *'
+
+jobs:
+  test:
+    name: Run Docker Builds
+    runs-on: ubuntu-latest
+    outputs:
+      dockerbuild_matrix: ${{ steps.dbuild.outputs.dockerbuild_matrix }}
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Generate Docker Build Matrices
+      uses: vsoch/uptodate@main
+      id: dbuild
+      with: 
+        parser: dockerbuild
+
+  view:
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Docker Build Result
+        env:
+          result: ${{ needs.test.outputs.dockerbuild_matrix }}
+        run: echo ${result}
+```
+
+**Matrix example coming shortly!**
 
 #### Inputs
 
@@ -278,5 +314,6 @@ The following outputs are provided by the action:
 | dockerfile_matrix | A matrix of Dockerfile changes with name and filename set to the Dockerfile name |
 | dockerhiearchy_matrix |A matrix of new Dockerfiles and the corresponding tag (Name) |
 | dockerfilelist_matrix | The result of Dockerfile list, akin to docker_file matrix but including all files |
+| dockerbuild_matrix | The result of the Docker Build parser, a build matrix to pipe into next steps |
 
 See the [examples](https://github.com/vsoch/uptodate/tree/main/.github/examples) folder for a more detailed example.

@@ -17,6 +17,11 @@ inputs:
     required: false
     default: false
 
+  flags:
+    description: "Extra flags for the parser (e.g., --no-build-args for dockerfilelist)"
+    required: false
+    default: ""
+
 runs:
   using: "docker"
   image: "Dockerfile"
@@ -33,5 +38,9 @@ branding:
 outputs:
   dockerfile_matrix:
     description: A matrix of Dockerfile changes with name and filename set to the Dockerfile name
-  dockerhiearchy_matrix:
+  dockerhierarchy_matrix:
     description: A matrix of new Dockerfiles and the corresponding tag (Name)
+  dockerfilelist_matrix:
+    description: A matrix of Dockerfiles listed with dockerfilelist
+  dockerbuild_matrix:
+    description: A matrix of Docker builds

@@ -11,7 +11,8 @@ if [ "${INPUT_DRY_RUN}" == "true" ]; then
     COMMAND="${COMMAND} --dry-run"
 fi
 
-COMMAND="${COMMAND} ${INPUT_ROOT}"
+# Add parser specific flags and the root
+COMMAND="${COMMAND} ${INPUT_FLAGS} ${INPUT_ROOT}"
 echo "${COMMAND}"
 
 ${COMMAND}

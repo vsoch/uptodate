@@ -16,22 +16,27 @@ type DockerfileListParser struct {
 }
 
 // AddDockerfile adds a Dockerfile to the Parser
-func (s *DockerfileListParser) AddDockerfile(root string, path string) {
+func (s *DockerfileListParser) AddDockerfile(root string, path string, includeArgs bool) {
 
 	// Create a new Dockerfile entry
 	dockerfile := Dockerfile{Path: path, Root: root}
+
+	// If we aren't including build args, skip if the Dockerfile has them
+	if !includeArgs && dockerfile.HasBuildArgs() {
+		return
+	}
 	s.Dockerfiles = append(s.Dockerfiles, dockerfile)
 }
 
 // Entrypoint to parse one or more Dockerfiles
-func (s *DockerfileListParser) Parse(path string) error {
+func (s *DockerfileListParser) Parse(path string, includeArgs bool) error {
 
 	// Find Dockerfiles in path and allow prefixes
 	paths, _ := utils.RecursiveFind(path, "Dockerfile", true)
 
 	// Add each path as a Dockerfile to the parser to update
 	for _, subpath := range paths {
-		s.AddDockerfile(path, subpath)
+		s.AddDockerfile(path, subpath, includeArgs)
 	}
 
 	// Keep track of updated count and set of results

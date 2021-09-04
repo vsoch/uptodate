@@ -54,6 +54,22 @@ type Dockerfile struct {
 	Updates []Update
 }
 
+// Determine if a Dockerfile contains BUILD args
+func (d *Dockerfile) HasBuildArgs() bool {
+
+	// If we don't have commands yet, try to parse
+	if len(d.Cmds) == 0 {
+		d.ParseCommands()
+	}
+
+	if values, ok := d.Cmds["arg"]; ok {
+		return len(values) > 0
+	}
+
+	// We don't have any build args
+	return false
+}
+
 // Return the basename of the Dockerfile
 func (d *Dockerfile) BaseName() string {
 	return filepath.Base(d.Path)
@@ -88,7 +104,7 @@ func (d *Dockerfile) AddCommand(cmd df.Command) {
 
 	// We only care about FROM statements, but maybe others in the future
 	commandType := strings.ToLower(cmd.Cmd)
-	if utils.IncludesString(commandType, []string{"from"}) {
+	if utils.IncludesString(commandType, []string{"from", "arg"}) {
 
 		// Add to lookup, checking if key already exists
 		if _, ok := d.Cmds[commandType]; ok {
@@ -202,21 +218,26 @@ func (s *DockerfileParser) CountUpdated() int {
 	return count
 }
 
+// ParseCommands in a Dockerfile, reading the file and saving a subest
+func (d *Dockerfile) ParseCommands() {
+
+	cmds, err := df.ParseFile(d.Path)
+
+	// If we can't read for whatever reason, log the issue and continue
+	if err != nil {
+		log.Printf("%s is not a loadable Dockerfile, skipping.", d.Path)
+		return
+	}
+	// Add commands, parse FROMs, and LABELS
+	d.AddCommands(cmds)
+}
+
 // AddDockerfile adds a Dockerfile to the Parser
 func (s *DockerfileParser) AddDockerfile(root string, path string) {
 
 	// Create a new Dockerfile entry
 	dockerfile := Dockerfile{Path: path, Root: root}
-	cmds, err := df.ParseFile(path)
-
-	// If we can't read for whatever reason, log the issue and continue
-	if err != nil {
-		log.Printf("%s is not a loadable Dockerfile, skipping.", path)
-		return
-	}
-
-	// Add commands, parse FROMs, and LABELS
-	dockerfile.AddCommands(cmds)
+	dockerfile.ParseCommands()
 	dockerfile.UpdateFroms()
 	s.Dockerfiles = append(s.Dockerfiles, dockerfile)
 }

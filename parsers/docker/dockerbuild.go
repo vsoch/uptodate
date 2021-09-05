@@ -137,8 +137,9 @@ func (s *DockerBuildParser) Parse(path string) error {
 
 				// Generate a suggested command, assuming using the dockerfile in its directory
 				command := generateBuildCommand(entry, dockerfile)
+				description := generateBuildDescription(entry, dockerfile)
 				fmt.Println(command)
-				newResult := parsers.BuildResult{BuildArgs: entry, CommandPrefix: command, Filename: dockerfile, Parser: "dockerbuild", Name: subpath}
+				newResult := parsers.BuildResult{BuildArgs: entry, CommandPrefix: command, Description: description, Filename: dockerfile, Parser: "dockerbuild", Name: subpath}
 				results = append(results, newResult)
 			}
 		}
@@ -184,6 +185,22 @@ func generateBuildCommand(buildargs map[string]string, dockerfile string) string
 		command += " --build-arg " + key + "=" + value
 	}
 	return command
+}
+
+// generateBuildDescription is useful so the build has a human readable string
+func generateBuildDescription(buildargs map[string]string, dockerfile string) string {
+
+	// Assume for now the Dockerfile directory is an identifier
+	dirname := filepath.Dir(dockerfile)
+
+	// Start the command (use environment variable for name)
+	description := dirname
+
+	// Add each buildarg
+	for key, value := range buildargs {
+		description += " " + key + ":" + value
+	}
+	return description
 }
 
 // getBuildMatrix is a helper function to grow a list of maps with each set of params

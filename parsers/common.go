@@ -17,6 +17,7 @@ type BuildResult struct {
 	Parser        string            `json:"parser,omitempty"`
 	BuildArgs     map[string]string `json:"buildargs,omitempty"`
 	CommandPrefix string            `json:"command_prefix,omitempty"`
+	Description   string            `json:"description,omitempty"`
 }
 
 // BuildVariable holds a key (name) and one or more values to parameterize over

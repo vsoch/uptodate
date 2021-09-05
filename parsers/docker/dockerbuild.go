@@ -137,6 +137,7 @@ func (s *DockerBuildParser) Parse(path string) error {
 
 				// Generate a suggested command, assuming using the dockerfile in its directory
 				command := generateBuildCommand(entry, dockerfile)
+				fmt.Println(command)
 				newResult := parsers.BuildResult{BuildArgs: entry, CommandPrefix: command, Filename: dockerfile, Parser: "dockerbuild", Name: subpath}
 				results = append(results, newResult)
 			}

@@ -127,7 +127,7 @@ func UpdateFrom(fromValue []string) Update {
 			update = Update{Original: original, Updated: updated}
 
 		} else {
-			fmt.Println("Cannot find container URI", url)
+			fmt.Println("No difference between:", updated, original)
 		}
 	}
 	return update

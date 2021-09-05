@@ -5,6 +5,7 @@ package spack
 import (
 	"github.com/vsoch/uptodate/utils"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -63,10 +64,12 @@ type SpackDependency struct {
 }
 
 // Get Versions of a spack package relevant to a set of user preferences
+// TODO this logic is too similar to the docker equivalent of GetVersions - should be one function
 func (s *SpackPackage) GetVersions(filters []string, startAtVersion string, skipVersions []string, includeVersions []string) []string {
 
 	// Final list of versions we will provide
 	versions := []string{}
+	contenders := []string{}
 
 	// We look for tags based on filters (this is an OR between them)
 	filter := "(" + strings.Join(filters, "|") + ")"
@@ -78,28 +81,36 @@ func (s *SpackPackage) GetVersions(filters []string, startAtVersion string, skip
 		doAdd = false
 	}
 
-	// The tags should already be sorted
+	// We will need to sort from earliest to latest
 	for _, version := range s.Versions {
+		contenders = append(contenders, version.Name)
+	}
+
+	// Sort from least to greatest
+	sort.Sort(sort.Reverse(sort.StringSlice(contenders)))
+
+	// The tags should already be sorted
+	for _, version := range contenders {
 
 		// If it's in the list to include, include no matter what
-		if utils.IncludesString(version.Name, includeVersions) {
-			versions = append(versions, version.Name)
+		if utils.IncludesString(version, includeVersions) {
+			versions = append(versions, version)
 			continue
 		}
 
 		// Have we hit the requested start version, and can add now?
-		if startAtVersion != "" && startAtVersion == version.Name && !doAdd {
+		if startAtVersion != "" && startAtVersion == version && !doAdd {
 			doAdd = true
 		}
 
 		// Is the tag in the list to skip?
-		if utils.IncludesString(version.Name, skipVersions) {
+		if utils.IncludesString(version, skipVersions) {
 			continue
 		}
 
 		// If we are adding, great! Add here to our list
-		if doAdd && isVersionRegex.MatchString(version.Name) {
-			versions = append(versions, version.Name)
+		if doAdd && isVersionRegex.MatchString(version) {
+			versions = append(versions, version)
 		}
 	}
 	return versions

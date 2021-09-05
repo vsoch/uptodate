@@ -4,10 +4,10 @@ package docker
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	lookout "github.com/alecbcs/lookout/update"
+	"github.com/vsoch/uptodate/parsers"
 	"github.com/vsoch/uptodate/utils"
 )
 
@@ -19,44 +19,7 @@ func GetVersions(container string, filters []string, startAtVersion string, skip
 	response := utils.GetRequest(tagsUrl)
 	tags := strings.Split(response, "\n")
 
-	// We look for tags based on filters (this is an OR between them)
-	filter := "(" + strings.Join(filters, "|") + ")"
-	isVersionRegex, _ := regexp.Compile(filter)
-
-	// Derive list of those that match minimally a minor, major
-	versions := []string{}
-
-	// Also don't add until we hit the start at version, given defined
-	doAdd := true
-	if startAtVersion != "" {
-		doAdd = false
-	}
-
-	// The tags should already be sorted
-	for _, text := range tags {
-
-		// If it's in the list to include, include no matter what
-		if utils.IncludesString(text, includeVersions) {
-			versions = append(versions, text)
-			continue
-		}
-
-		// Have we hit the requested start version, and can add now?
-		if startAtVersion != "" && startAtVersion == text && !doAdd {
-			doAdd = true
-		}
-
-		// Is the tag in the list to skip?
-		if utils.IncludesString(text, skipVersions) {
-			continue
-		}
-
-		// If we are adding, great! Add here to our list
-		if doAdd && isVersionRegex.MatchString(text) {
-			versions = append(versions, text)
-		}
-	}
-	return versions
+	return parsers.GetVersions(tags, filters, startAtVersion, skipVersions, includeVersions)
 }
 
 // UpdateFrom updates a single From, and returns an Update

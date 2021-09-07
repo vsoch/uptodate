@@ -28,6 +28,7 @@ type DockerBuild struct {
 // BuildArg expects metadata for building from a variable, spack, or other
 type BuildArg struct {
 	Name     string            `yaml:"name,omitempty"`
+	Key      string            `yaml:"key,omitempty"`
 	Type     string            `yaml:"type,omitempty"`
 	StartAt  string            `yaml:"startat,omitempty"`
 	Versions []string          `yaml:"versions,omitempty"`
@@ -36,6 +37,14 @@ type BuildArg struct {
 	Skips    []string          `yaml:"skips,omitempty"`
 	Includes []string          `yaml:"includes,omitempty"`
 	Params   map[string]string `yaml:"params,omitempty"`
+}
+
+// Get the identifier for a build arg
+func (b *BuildArg) GetKey() string {
+	if b.Key != "" {
+		return b.Key
+	}
+	return b.Name
 }
 
 // read the config and return a config type

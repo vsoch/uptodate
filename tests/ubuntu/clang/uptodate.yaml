@@ -1,7 +1,11 @@
 dockerbuild:
   build_args:
+
     # This is an example of a manual build arg, versions are required
     llvm_version:
+
+      # The key is a shorthand used for naming (required)
+      key: llvm
       versions:
        - "4.0.0"
        - "5.0.1"
@@ -9,11 +13,14 @@ dockerbuild:
 
     # This is an example of a spack build arg, the name is the package
     abyss_version:
+      key: abyss
       name: abyss
       type: spack
 
     # This will be parsed by the Dockerfile parser, name is the container name
     ubuntu_version:
+
+      key: ubuntu
       name: ubuntu
       type: container
       startat: "16.04"

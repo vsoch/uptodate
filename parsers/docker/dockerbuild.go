@@ -19,6 +19,12 @@ import (
 // DockerBuildParser holds one or more Docker Builds
 type DockerBuildParser struct{}
 
+// Keep track of an original lookup key and the slug for the buildarg
+type ContainerNamer struct {
+	Slug string
+	Key  string
+}
+
 // parseBuildArg parses a standard build arg
 func parseBuildArg(key string, buildarg config.BuildArg) []parsers.BuildVariable {
 
@@ -108,18 +114,29 @@ func (s *DockerBuildParser) Parse(path string) error {
 		// Prepare lists of values to create a matrix over
 		vars := []parsers.BuildVariable{}
 
+		// Keep a record of which variables to use for naming (container vs tag)
+		namingLookup := make(map[string][]ContainerNamer)
+		namingLookup["container"] = []ContainerNamer{}
+		namingLookup["tag"] = []ContainerNamer{}
+
 		for key, buildarg := range conf.DockerBuild.BuildArgs {
+
+			// identifier is the key and fallback to the name
+			namer := ContainerNamer{Key: key, Slug: buildarg.GetKey()}
 
 			// If it has a type, it either is that type, or we map to another type
 			if buildarg.Type == "container" {
 				result := parseContainerBuildArg(key, buildarg)
 				vars = append(vars, result...)
+				namingLookup["container"] = append(namingLookup["container"], namer)
 			} else if buildarg.Type == "spack" {
 				result := parseSpackBuildArg(key, buildarg)
 				vars = append(vars, result...)
+				namingLookup["tag"] = append(namingLookup["tag"], namer)
 			} else {
 				result := parseBuildArg(key, buildarg)
 				vars = append(vars, result...)
+				namingLookup["tag"] = append(namingLookup["tag"], namer)
 			}
 		}
 
@@ -128,8 +145,9 @@ func (s *DockerBuildParser) Parse(path string) error {
 		results := []parsers.BuildResult{}
 
 		// Find Dockerfile in subpath
-		dirname := filepath.Dir(subpath)
-		dockerfiles, _ := utils.RecursiveFind(dirname, "Dockerfile", true)
+		dirnamePath := filepath.Dir(subpath)
+		dockerfiles, _ := utils.RecursiveFind(dirnamePath, "Dockerfile", true)
+		dirname := filepath.Base(dirnamePath)
 
 		// We need a new build for each Dockerfile found (hopefully not many)
 		for _, dockerfile := range dockerfiles {
@@ -138,8 +156,11 @@ func (s *DockerBuildParser) Parse(path string) error {
 				// Generate a suggested command, assuming using the dockerfile in its directory
 				command := generateBuildCommand(entry, dockerfile)
 				description := generateBuildDescription(entry, dockerfile)
-				fmt.Println(command)
-				newResult := parsers.BuildResult{BuildArgs: entry, CommandPrefix: command, Description: description, Filename: dockerfile, Parser: "dockerbuild", Name: subpath}
+				containerName := generateContainerName(entry, namingLookup, dirname)
+				fmt.Println(command + " " + containerName)
+				newResult := parsers.BuildResult{BuildArgs: entry, CommandPrefix: command,
+					Description: description, Filename: dockerfile, Parser: "dockerbuild",
+					Name: subpath, ContainerName: containerName}
 				results = append(results, newResult)
 			}
 		}
@@ -151,8 +172,6 @@ func (s *DockerBuildParser) Parse(path string) error {
 
 		if utils.IsGitHubAction() {
 			fmt.Printf("::set-output name=dockerbuild_matrix::%s\n", string(outJson))
-		} else {
-			fmt.Printf("%s\n", string(outJson))
 		}
 	}
 	return nil
@@ -169,6 +188,31 @@ func GetBuildMatrix(vars []parsers.BuildVariable) []map[string]string {
 		results = append(results, newResults...)
 	}
 	return results
+}
+
+// generateContainerName creates a suggested name for the container (without registry)
+func generateContainerName(buildargs map[string]string, lookup map[string][]ContainerNamer, basename string) string {
+
+	// Start with the container basename (usually the directory it is in)
+	containerName := basename
+
+	// For each known container variable, this gets added to the container name
+	for _, namer := range lookup["container"] {
+		containerName = containerName + "-" + namer.Slug + "-" + buildargs[namer.Key]
+	}
+
+	// Add tags, if there are any
+	if len(lookup["tag"]) > 0 {
+		containerName += ":"
+		for i, namer := range lookup["tag"] {
+			containerName = containerName + namer.Slug + "-" + buildargs[namer.Key]
+			if i != len(lookup["tag"])-1 {
+				containerName = containerName + "-"
+			}
+		}
+		containerName = strings.Trim(containerName, "-")
+	}
+	return containerName
 }
 
 // generateBuildCommand will generate a build command for a given Dockerfile and buildards

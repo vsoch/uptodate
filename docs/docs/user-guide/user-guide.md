@@ -208,8 +208,12 @@ For example, let's say that we start with this configuration file:
 ```yaml
 dockerbuild:
   build_args:
-    # This is an example of a manual build arg, versions (or values) are required
+
+    # This is an example of a manual build arg, versions are required
     llvm_version:
+
+      # The key is a shorthand used for naming (required)
+      key: llvm
       versions:
        - "4.0.0"
        - "5.0.1"
@@ -217,11 +221,14 @@ dockerbuild:
 
     # This is an example of a spack build arg, the name is the package
     abyss_version:
+      key: abyss
       name: abyss
       type: spack
 
     # This will be parsed by the Dockerfile parser, name is the container name
     ubuntu_version:
+
+      key: ubuntu
       name: ubuntu
       type: container
       startat: "16.04"
@@ -233,13 +240,14 @@ dockerbuild:
 ```
 
 You'll see the primary section of interest is under `dockerbuild`, and under this
-we have theww build args. There are three `type` of build args:
-
+we have three build args. There are three `type` of build args:
 
  - *manual*: meaning you define a name and a list of versions or values, no extra parsing or updating done!
  - *spack*: derive a list of versions from spack, with the same options to start at, filter, skip, etc. The data is parsed from [the spack packages interface](https://spack.github.io/packages/) that is updated nightly from spack develop.
  - *container*: meaning you define similar fields to if you were asking to update Dockerfile froms - a container name, startat (version), filter, and versions to skip. If you include a tag with your container, we will simply update digests (and keep the same tag) so you'll get a much smaller matrix.
- 
+
+For each, the key is used to derive a suggested container name.  If you provide a container build arg variable,
+it's assumed to be for the `FROM` and will be added to the container name. Other variables will be represented in the tag.
 
 ### GitHub Action
 

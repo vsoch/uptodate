@@ -19,6 +19,7 @@ type Result struct {
 // A BuildResult needs more information (e.g., versions) to be given to a build matrix
 type BuildResult struct {
 	Name          string            `json:"name,omitempty"`
+	ContainerName string            `json:"container_name,omitempty"`
 	Filename      string            `json:"filename,omitempty"`
 	Parser        string            `json:"parser,omitempty"`
 	BuildArgs     map[string]string `json:"buildargs,omitempty"`

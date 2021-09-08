@@ -265,8 +265,14 @@ func getBuildMatrix(newkey string, values []string, previous []map[string]string
 	// Add each value to each existing
 	for _, value := range values {
 		for _, entry := range previous {
-			entry[newkey] = value
-			updated = append(updated, entry)
+			newEntry := make(map[string]string)
+
+			// This copies the previous entry
+			for k, v := range entry {
+				newEntry[k] = v
+			}
+			newEntry[newkey] = value
+			updated = append(updated, newEntry)
 		}
 	}
 	return updated

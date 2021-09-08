@@ -4,6 +4,7 @@ package docker
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	lookout "github.com/alecbcs/lookout/update"
@@ -18,6 +19,7 @@ func GetVersions(container string, filters []string, startAtVersion string, skip
 	tagsUrl := "https://crane.ggcr.dev/ls/" + container
 	response := utils.GetRequest(tagsUrl)
 	tags := strings.Split(response, "\n")
+	sort.Sort(sort.StringSlice(tags))
 
 	return parsers.GetVersions(tags, filters, startAtVersion, skipVersions, includeVersions)
 }

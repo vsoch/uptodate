@@ -251,8 +251,7 @@ func GetBuildMatrix(vars []parsers.BuildVariable) []map[string]string {
 	results := []map[string]string{}
 
 	for _, buildvar := range vars {
-		newResults := getBuildMatrix(buildvar.Name, buildvar.Values, results)
-		results = append(results, newResults...)
+		results = getBuildMatrix(buildvar.Name, buildvar.Values, results)
 	}
 	return results
 }

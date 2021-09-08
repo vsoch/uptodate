@@ -23,6 +23,7 @@ type DockerHierarchy struct {
 // We'd have to separate these later anyway
 type DockerBuild struct {
 	BuildArgs map[string]BuildArg `yaml:"build_args"`
+	Matrix    map[string][]string `yaml:"matrix,omitempty"`
 }
 
 // BuildArg expects metadata for building from a variable, spack, or other
@@ -66,10 +67,17 @@ func readConfig(yamlStr []byte) Conf {
 	}
 
 	// If we have a docker build, need to parse items
+	c.DockerBuild = DockerBuild{}
 	if item, ok := data["dockerbuild"]; ok {
 		buildArgs := item.(map[string]interface{})
 		if builditem, ok := buildArgs["build_args"]; ok {
-			c.DockerBuild = convertDockerBuild(builditem)
+			c.DockerBuild.BuildArgs = convertDockerBuildArgs(builditem)
+		}
+
+		// Otherwise it could be a matrix
+		matrixArgs := item.(map[string]interface{})
+		if matrixitem, ok := matrixArgs["matrix"]; ok {
+			c.DockerBuild.Matrix = convertDockerBuildMatrix(matrixitem)
 		}
 	}
 	return c
@@ -83,11 +91,17 @@ func convertDockerHierarchy(item interface{}) DockerHierarchy {
 }
 
 // convertDockerBuild maps the dockerbuild build params to a DockerBuild
-func convertDockerBuild(item interface{}) DockerBuild {
+func convertDockerBuildArgs(item interface{}) map[string]BuildArg {
 	build := map[string]BuildArg{}
 	mapstructure.Decode(item, &build)
-	db := DockerBuild{BuildArgs: build}
-	return db
+	return build
+}
+
+// convertDockerBuildMatrix maps the dockerbuild matrix to a Matrix
+func convertDockerBuildMatrix(item interface{}) map[string][]string {
+	matrix := map[string][]string{}
+	mapstructure.Decode(item, &matrix)
+	return matrix
 }
 
 type Conf struct {

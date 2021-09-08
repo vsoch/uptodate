@@ -199,7 +199,12 @@ $ ./uptodate dockerfilelist
 ### Docker Build
 
 Docker build will be similar to the Docker Hierarchy updater in that it reads an `uptodate.yaml`
-and then generates one or more build matrices for it. The matrices include all versions or other variables
+and then generates one or more build matrices for it. You have two options for this dockerbuild section:
+
+1. Include a predefined build matrix, one with pairs of values to build
+2. Only include build args and constraints, in which case all combinations are built.
+
+For the first example, the matrices will include all versions or other variables
 that you've specified, along with the Dockerfile that are discovered under the root where
 the `uptodate.yaml` is. The matrices can be parsed into
 a GitHub action to drive further container builds using one or more base images.
@@ -248,6 +253,43 @@ we have three build args. There are three `type` of build args:
 
 For each, the key is used to derive a suggested container name.  If you provide a container build arg variable,
 it's assumed to be for the `FROM` and will be added to the container name. Other variables will be represented in the tag.
+
+For the second example, here we see a configuration file that has a predefined "matrix":
+
+```yaml
+dockerbuild:
+
+  # This says "only build these combinations of build args"
+  # variables left out won't be included (e.g., abyss)
+  matrix:
+    llvm_version: [4.0.0, 5.0.1, "6.0.0"]
+    ubuntu_version: ["16.04", "18.04", "20.04"]
+    
+  # With a matrix, we will derive possible versions from build args here
+  # without the matrix above, we build all possible versions
+  build_args:
+
+    # This is an example of a manual build arg, versions are required
+    llvm_version:
+
+      # The key is a shorthand used for naming (required)
+      key: llvm
+
+    # This is an example of a spack build arg, the name is the package
+    abyss_version:
+      key: abyss
+      type: spack
+
+    # This will be parsed by the Dockerfile parser, name is the container name
+    ubuntu_version:
+
+      key: ubuntu
+      name: ubuntu
+      type: container
+```
+
+Since we are going to be honoring the list verbatim, you don't need to worry about
+extra metadata for the build args beyond the key, name, and type.
 
 ### GitHub Action
 

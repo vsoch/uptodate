@@ -11,6 +11,7 @@ jobs:
       dockerfilelist_matrix: ${{ steps.dockerfilelist_check.outputs.dockerfilelist_matrix }}
       dockerbuild_matrix: ${{ steps.dockerbuild_check.outputs.dockerbuild_matrix }}
       buildargskip_matrix: ${{ steps.buildargskip_check.outputs.dockerfilelist_matrix }}
+      dockerbuildpredefined_matrix: ${{ steps.dockerbuildpredefined_check.outputs.dockerbuild_matrix }}
     steps:
     - name: Checkout Actions Repository
       uses: actions/checkout@v2
@@ -50,6 +51,14 @@ jobs:
         root: ./tests/ubuntu/clang
         parser: dockerbuild
 
+    - name: Test dockerbuild predefined matrix uptodate GitHub Action
+      uses: ./
+      id: dockerbuildpredefined_check
+      with: 
+        root: ./tests/ubuntu/clang-predefined
+        parser: dockerbuild
+
+
   view:
     needs:
       - test
@@ -78,4 +87,9 @@ jobs:
       - name: Check Docker Build Result
         env:
           result: ${{ needs.test.outputs.dockerbuild_matrix }}
+        run: echo ${result}
+        
+      - name: Check Docker Build Predefined Result
+        env:
+          result: ${{ needs.test.outputs.dockerbuildpredefined_matrix }}
         run: echo ${result}

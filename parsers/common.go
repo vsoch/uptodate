@@ -1,6 +1,7 @@
 package parsers
 
 import (
+	"github.com/blang/semver/v4"
 	"github.com/vsoch/uptodate/utils"
 	"regexp"
 	"strings"
@@ -33,8 +34,30 @@ type BuildVariable struct {
 	Values []string
 }
 
-// VersionRegex matches a major and minor, optional third group (not semver)
+// VersionRegex matches a major and minor, optional third group
 var VersionRegex = "[0-9]+[.][0-9]+(?:[.][0-9]+)?"
+var SemverRegex = "^[0-9]+[.][0-9]+[.][0-9]$"
+
+func SortVersions(contenders []string) []string {
+
+	// We need to sort the versions
+	svers := []semver.Version{}
+	for _, version := range contenders {
+		v, err := semver.Parse(version)
+		if err == nil {
+			svers = append(svers, v)
+		}
+	}
+	semver.Sort(svers)
+
+	// Convert to string
+	versions := []string{}
+	for _, v := range svers {
+		version := v.String()
+		versions = append(versions, version)
+	}
+	return versions
+}
 
 func GetVersions(contenders []string, filters []string, startAtVersion string, skipVersions []string, includeVersions []string) []string {
 

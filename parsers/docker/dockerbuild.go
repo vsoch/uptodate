@@ -119,7 +119,30 @@ func (s *DockerBuildParser) Parse(path string) error {
 		namingLookup["container"] = []ContainerNamer{}
 		namingLookup["tag"] = []ContainerNamer{}
 
+		// Keys we will skip if not included in matrix
+		allowKeys := []string{}
+
+		// If the config already has a matrix, honor it
+		var matrix []map[string]string
+		if len(conf.DockerBuild.Matrix) > 0 {
+			matrix = NewBuildMatrix(conf.DockerBuild.Matrix)
+
+			// We won't build variables not in matrix
+			if len(matrix) > 0 {
+				firstEntry := matrix[0]
+				for key := range firstEntry {
+					allowKeys = append(allowKeys, key)
+				}
+			}
+
+		}
+
 		for key, buildarg := range conf.DockerBuild.BuildArgs {
+
+			// Skip those that aren't in matrix, if matrix predefined
+			if len(allowKeys) > 0 && !utils.IncludesString(key, allowKeys) {
+				continue
+			}
 
 			// identifier is the key and fallback to the name
 			namer := ContainerNamer{Key: key, Slug: buildarg.GetKey()}
@@ -140,8 +163,12 @@ func (s *DockerBuildParser) Parse(path string) error {
 			}
 		}
 
-		// Create build matrix and format into build results
-		matrix := GetBuildMatrix(vars)
+		// If we don't have the matrix yet, create all possible combinations
+		if len(conf.DockerBuild.Matrix) == 0 {
+			matrix = GetBuildMatrix(vars)
+		}
+
+		// Prepare a list of build results
 		results := []parsers.BuildResult{}
 
 		// Find Dockerfile in subpath
@@ -175,6 +202,46 @@ func (s *DockerBuildParser) Parse(path string) error {
 		}
 	}
 	return nil
+}
+
+// Create a build matrix from an existing specification (we trust that it is correct)
+func NewBuildMatrix(matrixArgs map[string][]string) []map[string]string {
+
+	// The final result is a list of key value pairs
+	results := []map[string]string{}
+
+	// First get the min length to loop through
+	minLength := 100
+	for _, values := range matrixArgs {
+		if len(values) < minLength {
+			minLength = len(values)
+		}
+	}
+
+	// Now go through the min length of each
+	count := 1
+	for key, values := range matrixArgs {
+
+		// If we are in the first loop, create the original list of results
+		if count == 1 {
+			for _, value := range values {
+				entry := make(map[string]string)
+				entry[key] = value
+				results = append(results, entry)
+			}
+		} else {
+			for i, value := range values {
+
+				// If we've exceeded the min length, we don't have a perfect match
+				if i+1 > len(results) {
+					break
+				}
+				results[i][key] = value
+			}
+		}
+		count += 1
+	}
+	return results
 }
 
 // GetBuildMatrix generates a build matrix, across all variable options

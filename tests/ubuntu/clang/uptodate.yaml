@@ -1,4 +1,13 @@
 dockerbuild:
+
+  # This says "only build these combinations of build args"
+  # variables left out won't be included (e.g., abyss)
+  matrix:
+    llvm_version: [4.0.0, 5.0.1, "6.0.0"]
+    ubuntu_version: ["16.04", "18.04", "20.04"]
+    
+  # With a matrix, we will derive possible versions from build args here
+  # without the matrix above, we build all possible versions
   build_args:
 
     # This is an example of a manual build arg, versions are required

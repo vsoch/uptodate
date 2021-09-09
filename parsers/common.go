@@ -59,10 +59,30 @@ func SortVersions(contenders []string) []string {
 	return versions
 }
 
+func HasSemanticVersions(contenders []string) bool {
+
+	// Do we have any semantic versions?
+	haveSemver := false
+	isSemver, _ := regexp.Compile(SemverRegex)
+
+	// If we do, we can attempt a custom sort
+	for _, version := range contenders {
+		if isSemver.MatchString(version) {
+			haveSemver = true
+		}
+	}
+	return haveSemver
+}
+
 func GetVersions(contenders []string, filters []string, startAtVersion string, skipVersions []string, includeVersions []string) []string {
 
 	// Final list of versions we will provide
 	versions := []string{}
+
+	// Do we have semantic versions? If so, this is the better sort
+	if HasSemanticVersions(contenders) {
+		contenders = SortVersions(contenders)
+	}
 
 	// We look for tags based on filters (this is an OR between them)
 	filter := "(" + strings.Join(filters, "|") + ")"

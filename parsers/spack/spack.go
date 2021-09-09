@@ -4,7 +4,6 @@ package spack
 
 import (
 	"github.com/vsoch/uptodate/parsers"
-	"regexp"
 	"sort"
 )
 
@@ -65,25 +64,14 @@ type SpackDependency struct {
 // Get Versions of a spack package relevant to a set of user preferences
 func (s *SpackPackage) GetVersions(filters []string, startAtVersion string, skipVersions []string, includeVersions []string) []string {
 
-	// Do we have any semantic versions?
-	haveSemver := false
-	isSemver, _ := regexp.Compile(parsers.SemverRegex)
-
 	// Sort versions from earliest to latest
 	contenders := []string{}
 	for _, version := range s.Versions {
-		if isSemver.MatchString(version.Name) {
-			haveSemver = true
-		}
 		contenders = append(contenders, version.Name)
 	}
 
 	// Sort from least to greatest
 	sort.Sort(sort.Reverse(sort.StringSlice(contenders)))
 
-	// But if we have semver, this is a better sort
-	if haveSemver {
-		contenders = parsers.SortVersions(contenders)
-	}
 	return parsers.GetVersions(contenders, filters, startAtVersion, skipVersions, includeVersions)
 }

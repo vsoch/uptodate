@@ -56,24 +56,24 @@ func GetAllChanges(path string) []GitChange {
 	changedFiles := []GitChange{}
 	repo, err := gogit.PlainOpen(path)
 	if err != nil {
-		log.Fatalf("Cannot find repo at %s\n", path)
+		log.Fatalf("Cannot find repo at %s: %s\n", path, err)
 	}
 
 	// Get the branch pointed by HEAD
 	ref, err := repo.Head()
 	if err != nil {
-		log.Fatalf("Cannot get branch pointed to by HEAD\n")
+		log.Fatalf("Cannot get branch pointed to by HEAD: %s\n", err)
 	}
 
 	// Get the commit object
 	commit, err := repo.CommitObject(ref.Hash())
 	if err != nil {
-		log.Fatalf("Cannot retrieve HEAD commit.\n")
+		log.Fatalf("Cannot retrieve HEAD commit: %s\n", err)
 	}
 
 	prevCommit, err := commit.Parent(0)
 	if err != nil {
-		log.Fatalf("Cannot get previous commit\n")
+		log.Fatalf("Cannot get previous commit: %s\n", err)
 	}
 
 	// Get trees for current and previous commit

@@ -12,6 +12,7 @@ import (
 
 	"github.com/vsoch/uptodate/config"
 	"github.com/vsoch/uptodate/parsers"
+	"github.com/vsoch/uptodate/parsers/git"
 	"github.com/vsoch/uptodate/parsers/spack"
 	"github.com/vsoch/uptodate/utils"
 )
@@ -96,10 +97,23 @@ func parseSpackBuildArg(key string, buildarg config.BuildArg) []parsers.BuildVar
 }
 
 // Entrypoint to parse one or more Docker build matrices
-func (s *DockerBuildParser) Parse(path string) error {
+func (s *DockerBuildParser) Parse(path string, changesOnly bool) error {
 
 	// Find config files in path and don't allow prefixes
 	paths, _ := utils.RecursiveFind(path, "uptodate.yaml", false)
+
+	// If we want changed only, honor that
+	if changesOnly {
+
+		// Create list of changes (Modify or Add)
+		changed := git.GetChangedFilesStrings(path)
+		paths = utils.FindOverlap(paths, changed)
+	}
+
+	// No updated?
+	if len(paths) == 0 {
+		fmt.Println("No changes to parse.")
+	}
 
 	// Look at each found path, parse into build matrix
 	for _, subpath := range paths {

@@ -289,6 +289,46 @@ jobs:
 
 **Matrix example coming shortly!**
 
+
+## Git
+
+Here is how to get a matrix of changed git files:
+
+```yaml
+name: git-changes-matrix
+
+on:  
+  schedule:
+    - cron:  '0 2 * * *'
+
+jobs:
+  test:
+    name: Get git changes
+    runs-on: ubuntu-latest
+    outputs:
+      git_matrix: ${{ steps.git.outputs.git_matrix }}
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Get git changes
+      uses: vsoch/uptodate@main
+      id: git
+      with: 
+        parser: git
+
+  view:
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Docker Build Result
+        env:
+          result: ${{ needs.test.outputs.git_matrix }}
+        run: echo ${result}
+```
+
+
 #### Inputs
 
 The following inputs are provided by the action:
@@ -299,6 +339,7 @@ The following inputs are provided by the action:
 | root | Root path to provide to command. Can be a Dockerfile or directory | false | "" |
 | parser | Parser to run, one of dockerfile, or dockerhierarchy | true | |
 | dry_run | Do a dry run (don't write, but show changes) one of true or false, defaults to false | false | false |
+| changes| Only include changed files (defaults to false) | false | false |
 
 For the root, if you leave it undefined, the root of your repository will be used, and discovery
 of relevant files (e.g., Dockerfile) will be done from there. If `dry_run` is added, no outputs
@@ -315,5 +356,6 @@ The following outputs are provided by the action:
 | dockerhiearchy_matrix |A matrix of new Dockerfiles and the corresponding tag (Name) |
 | dockerfilelist_matrix | The result of Dockerfile list, akin to docker_file matrix but including all files |
 | dockerbuild_matrix | The result of the Docker Build parser, a build matrix to pipe into next steps |
+| git_matrix | A matrix of changed files, each with a `Name` (change type) and `Filename` |
 
 See the [examples](https://github.com/vsoch/uptodate/tree/main/.github/examples) folder for a more detailed example.

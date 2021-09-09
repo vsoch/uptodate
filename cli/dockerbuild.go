@@ -12,7 +12,9 @@ type DockerBuildArgs struct {
 	Root []string `zero:"true" desc:"A root directory to parse."`
 }
 
-type DockerBuildFlags struct{}
+type DockerBuildFlags struct {
+	Changes bool `long:"changes" desc:"Only consider changed uptodate files"`
+}
 
 // Dockerfile updates one or more Dockerfile
 var DockerBuild = cmd.Sub{
@@ -32,6 +34,7 @@ func init() {
 func RunDockerBuild(r *cmd.Root, c *cmd.Sub) {
 
 	args := c.Args.(*DockerBuildArgs)
+	flags := c.Flags.(*DockerBuildFlags)
 
 	// If no root provided, assume parsing the PWD
 	if len(args.Root) == 0 {
@@ -43,6 +46,6 @@ func RunDockerBuild(r *cmd.Root, c *cmd.Sub) {
 
 	// Update the dockerfiles with a Dockerfile parser
 	parser := docker.DockerBuildParser{}
-	parser.Parse(args.Root[0])
+	parser.Parse(args.Root[0], flags.Changes)
 
 }

@@ -11,6 +11,7 @@ import (
 
 	df "github.com/asottile/dockerfile"
 	"github.com/vsoch/uptodate/parsers"
+	"github.com/vsoch/uptodate/parsers/git"
 	"github.com/vsoch/uptodate/utils"
 	"path/filepath"
 )
@@ -243,10 +244,23 @@ func (s *DockerfileParser) AddDockerfile(root string, path string) {
 }
 
 // Entrypoint to parse one or more Dockerfiles
-func (s *DockerfileParser) Parse(path string, dryrun bool) error {
+func (s *DockerfileParser) Parse(path string, dryrun bool, changesOnly bool) error {
 
 	// Find Dockerfiles in path and allow prefixes
 	paths, _ := utils.RecursiveFind(path, "Dockerfile", true)
+
+	// If we want changed only, honor that
+	if changesOnly {
+
+		// Create list of changes (Modify or Add)
+		changed := git.GetChangedFilesStrings(path)
+		paths = utils.FindOverlap(paths, changed)
+	}
+
+	// No updated?
+	if len(paths) == 0 {
+		fmt.Println("No changes to parse.")
+	}
 
 	// Add each path as a Dockerfile to the parser to update
 	for _, subpath := range paths {

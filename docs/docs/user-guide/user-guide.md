@@ -5,10 +5,11 @@
 This is a Go library that will look for `Dockerfile`s and (eventually) other assets
 in your repository and help you keep this up to date (hence the name!) This means for:
 
- - A **Dockerfile** Updater: will look for all Dockerfiles, find `FROM` lines, and make sure we are using the most up to date hash. We do not advance the tag itself (e.g., 18.04 will not be updated to 20.04) but just the sha256 sum, in the case that there are security updates, etc.
- - A **Docker Hierarchy**: is a structure that has some top level folder identified by an `uptodate.yaml` file, which is described [here](https://vsoch.github.io/uptodate/docs/#/user-guide/user-guide?id=uptodate-yaml). Within this folder are subfolders that correspond to tags, and the tool looks for new tags, and generates you a template Dockerfile to build if there are. 
- - A **Dockerfile List**: updater will simply find all your Dockerfiles, and list them or provide them in a json output for a GitHub action for further parsing.
- - A **Docker Build**: provides a matrix of builds to pipe into a GitHub Action.
+ - **Dockerfile**: is an updated that will look for all Dockerfiles, find `FROM` lines, and make sure we are using the most up to date hash. We do not advance the tag itself (e.g., 18.04 will not be updated to 20.04) but just the sha256 sum, in the case that there are security updates, etc.
+ - **Docker Hierarchy**: is a structure that has some top level folder identified by an `uptodate.yaml` file, which is described [here](https://vsoch.github.io/uptodate/docs/#/user-guide/user-guide?id=uptodate-yaml). Within this folder are subfolders that correspond to tags, and the tool looks for new tags, and generates you a template Dockerfile to build if there are. 
+ - **Dockerfile List**: updater will simply find all your Dockerfiles, and list them or provide them in a json output for a GitHub action for further parsing.
+ - **Docker Build**: provides a matrix of builds to pipe into a GitHub Action.
+ - **Git**: is an updater that will list changed files (and generate the same information in a matrix).
  
 For all of the above, you can run the tool manually on the command line, or as a GitHub action.
 For the last (Docker Build) the builds aren't currently performed for you (and you can [request this](https://github.com/vsoch/uptodate/issues) if you'd like it)
@@ -78,7 +79,13 @@ $ ./uptodate dockerfile
 If you don't want to write changes but just preview, add `--dry-run`:
 
 ```bash
-$ ./uptodate dockerhierarchy --dry-run
+$ ./uptodate dockerfile --dry-run
+```
+
+or if you just want to update changed files (for the current git commit)
+
+```bash
+$ uptodate dockerfile --changes
 ```
 
 To update your `Dockerfile`s we use [lookout](https://github.com/alecbcs/lookout) for updated versions 
@@ -196,9 +203,15 @@ $ ./uptodate dockerfilelist
 /home/vanessa/go/src/github.com/vsoch/uptodate/tests/ubuntu/21.04/Dockerfile
 ```
 
+if you just want to list updated (modified or added) you can do:
+
+```bash
+$ uptodate dockerfilelist --changes
+```
+
 ### Docker Build
 
-Docker build will be similar to the Docker Hierarchy updater in that it reads an `uptodate.yaml`
+Docker build is similar to the Docker Hierarchy updater in that it reads an `uptodate.yaml`
 and then generates one or more build matrices for it. You have two options for this dockerbuild section:
 
 1. Include a predefined build matrix, one with pairs of values to build
@@ -290,6 +303,43 @@ dockerbuild:
 
 Since we are going to be honoring the list verbatim, you don't need to worry about
 extra metadata for the build args beyond the key, name, and type.
+To run this for a repository root:
+
+```bash
+$ uptodate dockerbuild 
+```
+
+And to only include changed uptodate.yaml files:
+
+```bash
+$ uptodate dockerbuild --changes
+```
+
+We could add support for changed associated Dockerfile too - please [open an issue](https://github.com/vsoch/uptodate/issues)
+is this is interesting to you.
+
+### Git
+
+The git uptodate parser will simply generate a json structure of changed files.
+For example, here we are running it locally to see that the changes in the most
+recent commit include an update to a GitHub workflow:
+
+```bash
+$ ./uptodate git /path/to/repo
+              _            _       _       
+  _   _ _ __ | |_ ___   __| | __ _| |_ ___ 
+ | | | | '_ \| __/ _ \ / _  |/ _  | __/ _ \
+ | |_| | |_) | || (_) | (_| | (_| | ||  __/
+  \__,_| .__/ \__\___/ \__,_|\__,_|\__\___|
+       |_|                          git
+
+
+  ⭐️ Changed Files ⭐️
+    .github/workflows/build-matrices.yaml: Modify
+```
+
+You can also use this functionality with the `dockerbuild` or `dockerfile` or `dockerfilelist` parsers by adding `--changes`
+to only include changed files.
 
 ### GitHub Action
 
@@ -297,7 +347,6 @@ For all of the commands above, if you run them in a GitHub action, a matrix of r
 will be produced that you can pipe into a build matrix, or parse as a string for your
 own usage. See the [GitHub Action](https://vsoch.github.io/uptodate/docs/#/user-guide/github-action)
 for more details.
-
 
 ### Version Regular Expressions
 

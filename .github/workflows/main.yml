@@ -12,6 +12,7 @@ jobs:
       dockerbuild_matrix: ${{ steps.dockerbuild_check.outputs.dockerbuild_matrix }}
       buildargskip_matrix: ${{ steps.buildargskip_check.outputs.dockerfilelist_matrix }}
       dockerbuildpredefined_matrix: ${{ steps.dockerbuildpredefined_check.outputs.dockerbuild_matrix }}
+      git_matrix: ${{ steps.git.outputs.git_matrix }}
     steps:
     - name: Checkout Actions Repository
       uses: actions/checkout@v2
@@ -58,6 +59,13 @@ jobs:
         root: ./tests/ubuntu/clang-predefined
         parser: dockerbuild
 
+    - name: Test git changes
+      uses: ./
+      id: git
+      with: 
+        root: .
+        parser: git
+
 
   view:
     needs:
@@ -87,6 +95,11 @@ jobs:
       - name: Check Docker Build Result
         env:
           result: ${{ needs.test.outputs.dockerbuild_matrix }}
+        run: echo ${result}
+
+      - name: Check git changes result
+        env:
+          result: ${{ needs.test.outputs.git_matrix }}
         run: echo ${result}
         
       - name: Check Docker Build Predefined Result

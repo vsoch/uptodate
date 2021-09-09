@@ -12,7 +12,8 @@ type DockerfileArgs struct {
 	Root []string `zero:"true" desc:"A Dockerfile or directory to parse."`
 }
 type DockerfileFlags struct {
-	DryRun bool `long:"dry-run" desc:"Preview changes but don't write."`
+	DryRun  bool `long:"dry-run" desc:"Preview changes but don't write."`
+	Changes bool `long:"changes" desc:"Only consider changed uptodate files"`
 }
 
 // Dockerfile updates one or more Dockerfile
@@ -45,6 +46,6 @@ func RunDockerfile(r *cmd.Root, c *cmd.Sub) {
 
 	// Update the dockerfiles with a Dockerfile parser
 	parser := docker.DockerfileParser{}
-	parser.Parse(args.Root[0], flags.DryRun)
+	parser.Parse(args.Root[0], flags.DryRun, flags.Changes)
 
 }

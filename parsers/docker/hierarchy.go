@@ -203,6 +203,11 @@ func (s *DockerHierarchyParser) Update(dryrun bool) error {
 			log.Fatal("There are missing tags but no existing Dockerfile present to copy, cannot continue.")
 		}
 
+		if len(present) == 0 {
+			fmt.Println("No Dockerfile found to parse.")
+			continue
+		}
+
 		// Get the latest Dockerfile that exists
 		dockerfile := root.GetLatestDockerfile(present[len(present)-1])
 

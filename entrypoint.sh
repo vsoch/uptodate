@@ -16,7 +16,7 @@ if [ "${INPUT_CHANGES}" == "true" ]; then
 fi
 
 # Add parser specific flags and the root
-COMMAND="${COMMAND} ${INPUT_FLAGS} ${INPUT_CHANGES} ${INPUT_ROOT}"
+COMMAND="${COMMAND} ${INPUT_FLAGS} ${INPUT_ROOT}"
 echo "${COMMAND}"
 
 ${COMMAND}

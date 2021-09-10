@@ -17,6 +17,11 @@ inputs:
     required: false
     default: false
 
+  changes:
+    description: "Only consider relevant changed files for the current git commit"
+    required: false
+    default: false
+
   flags:
     description: "Extra flags for the parser (e.g., --no-build-args for dockerfilelist)"
     required: false

@@ -362,6 +362,9 @@ jobs:
 ```
 
 Note that if you need to change the branch compared against, set `flags:` to include `--branch master`.
+If it's found that you are on the same branch you are comparing against, instead
+we look one commit back, the assumption being that you merged and the changes are found in the
+last commit.
 
 #### Inputs
 

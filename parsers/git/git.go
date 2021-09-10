@@ -3,13 +3,15 @@ package git
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"path/filepath"
+	"strings"
+
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/vsoch/uptodate/parsers"
 	"github.com/vsoch/uptodate/utils"
-	"log"
-	"strings"
 )
 
 type GitParser struct {
@@ -35,7 +37,7 @@ func GetChangedFiles(path string, branch string) []GitChange {
 	allChanges := GetAllChanges(path, branch)
 	changedFiles := []GitChange{}
 	for _, change := range allChanges {
-		if change.Action == "Modify" || change.Action == "Add" {
+		if change.Action == "Modify" || change.Action == "Insert" {
 			changedFiles = append(changedFiles, change)
 		}
 	}
@@ -110,7 +112,7 @@ func GetAllChanges(path string, main string) []GitChange {
 	prevTree, err := prevCommit.Tree()
 
 	// Get new, modified, deleted files
-	changes, err := currentTree.Diff(prevTree)
+	changes, err := prevTree.Diff(currentTree)
 	for _, change := range changes {
 		action, err := change.Action()
 		if err != nil {
@@ -120,6 +122,9 @@ func GetAllChanges(path string, main string) []GitChange {
 
 		// Get list of involved files
 		name := getChangeName(change)
+
+		// Provide full paths
+		name = filepath.Join(path, name)
 		change := GitChange{Name: name, Action: action.String()}
 		changedFiles = append(changedFiles, change)
 	}

@@ -14,6 +14,13 @@ jobs:
       dockerbuildpredefined_matrix: ${{ steps.dockerbuildpredefined_check.outputs.dockerbuild_matrix }}
       git_matrix: ${{ steps.git.outputs.git_matrix }}
     steps:
+    - name: Force Install GIT latest
+      run: |
+        apt-get install -y software-properties-common \
+        && apt-get update \
+        && add-apt-repository -y ppa:git-core/ppa \
+        && apt-get update \
+        && apt-get install -y git
     - name: Checkout Actions Repository
       uses: actions/checkout@v2
     - name: Test dockerfile uptodate GitHub Action

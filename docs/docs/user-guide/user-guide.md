@@ -338,8 +338,14 @@ $ ./uptodate git /path/to/repo
     .github/workflows/build-matrices.yaml: Modify
 ```
 
+By default, the name of the branch we compare against is "main." To change this:
+
+```bash
+$ ./uptodate git /path/to/repo --branch master
+```
+
 You can also use this functionality with the `dockerbuild` or `dockerfile` or `dockerfilelist` parsers by adding `--changes`
-to only include changed files.
+to only include changed files. The `--branch` flag works here as well, and can be added with `flags: --branch master` in the GitHub action.
 
 ### GitHub Action
 

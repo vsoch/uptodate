@@ -12,7 +12,9 @@ type GitArgs struct {
 	Root []string `zero:"true" desc:"A root directory to parse."`
 }
 
-type GitFlags struct{}
+type GitFlags struct {
+	Branch string `long:"branch" desc:"Branch to compare HEAD against, defaults to main"`
+}
 
 var Git = cmd.Sub{
 	Name:  "git",
@@ -31,10 +33,16 @@ func init() {
 func RunGit(r *cmd.Root, c *cmd.Sub) {
 
 	args := c.Args.(*GitArgs)
+	flags := c.Flags.(*GitFlags)
 
 	// If no root provided, assume parsing the PWD
 	if len(args.Root) == 0 {
 		args.Root = []string{utils.GetPwd()}
+	}
+
+	// Set default branch
+	if flags.Branch == "" {
+		flags.Branch = "main"
 	}
 
 	// Print the logo!
@@ -42,6 +50,6 @@ func RunGit(r *cmd.Root, c *cmd.Sub) {
 
 	// Update the dockerfiles with a Dockerfile parser
 	parser := git.GitParser{}
-	parser.Parse(args.Root[0])
+	parser.Parse(args.Root[0], flags.Branch)
 
 }

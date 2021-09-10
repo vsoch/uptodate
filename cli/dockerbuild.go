@@ -13,7 +13,8 @@ type DockerBuildArgs struct {
 }
 
 type DockerBuildFlags struct {
-	Changes bool `long:"changes" desc:"Only consider changed uptodate files"`
+	Changes bool   `long:"changes" desc:"Only consider changed uptodate files"`
+	Branch  string `long:"branch" desc:"Branch to compare HEAD against, defaults to main"`
 }
 
 // Dockerfile updates one or more Dockerfile
@@ -44,8 +45,13 @@ func RunDockerBuild(r *cmd.Root, c *cmd.Sub) {
 	// Print the logo!
 	fmt.Println(utils.GetLogo() + "                     dockerbuild\n")
 
+	// Set default branch
+	if flags.Branch == "" {
+		flags.Branch = "main"
+	}
+
 	// Update the dockerfiles with a Dockerfile parser
 	parser := docker.DockerBuildParser{}
-	parser.Parse(args.Root[0], flags.Changes)
+	parser.Parse(args.Root[0], flags.Changes, flags.Branch)
 
 }

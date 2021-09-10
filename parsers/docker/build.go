@@ -97,7 +97,7 @@ func parseSpackBuildArg(key string, buildarg config.BuildArg) []parsers.BuildVar
 }
 
 // Entrypoint to parse one or more Docker build matrices
-func (s *DockerBuildParser) Parse(path string, changesOnly bool) error {
+func (s *DockerBuildParser) Parse(path string, changesOnly bool, branch string) error {
 
 	// Find config files in path and don't allow prefixes
 	paths, _ := utils.RecursiveFind(path, "uptodate.yaml", false)
@@ -106,7 +106,7 @@ func (s *DockerBuildParser) Parse(path string, changesOnly bool) error {
 	if changesOnly {
 
 		// Create list of changes (Modify or Add)
-		changed := git.GetChangedFilesStrings(path)
+		changed := git.GetChangedFilesStrings(path, branch)
 		paths = utils.FindOverlap(paths, changed)
 	}
 

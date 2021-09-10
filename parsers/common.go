@@ -74,7 +74,7 @@ func HasSemanticVersions(contenders []string) bool {
 	return haveSemver
 }
 
-func GetVersions(contenders []string, filters []string, startAtVersion string, skipVersions []string, includeVersions []string) []string {
+func GetVersions(contenders []string, filters []string, startAtVersion string, endAtVersion string, skipVersions []string, includeVersions []string) []string {
 
 	// Final list of versions we will provide
 	versions := []string{}
@@ -116,6 +116,11 @@ func GetVersions(contenders []string, filters []string, startAtVersion string, s
 		// If we are adding, great! Add here to our list
 		if doAdd && isVersionRegex.MatchString(version) {
 			versions = append(versions, version)
+		}
+
+		// If we have an endat version and we reached it, break
+		if endAtVersion != "" && endAtVersion == version {
+			break
 		}
 	}
 	return versions

@@ -13,7 +13,8 @@ import (
 )
 
 // GetVersions of existing container within user preferences
-func GetVersions(container string, filters []string, startAtVersion string, skipVersions []string, includeVersions []string) []string {
+func GetVersions(container string, filters []string, startAtVersion string, endAtVersion string,
+	skipVersions []string, includeVersions []string) []string {
 
 	// Get tags for current container image
 	tagsUrl := "https://crane.ggcr.dev/ls/" + container
@@ -21,7 +22,7 @@ func GetVersions(container string, filters []string, startAtVersion string, skip
 	tags := strings.Split(response, "\n")
 	sort.Sort(sort.StringSlice(tags))
 
-	return parsers.GetVersions(tags, filters, startAtVersion, skipVersions, includeVersions)
+	return parsers.GetVersions(tags, filters, startAtVersion, endAtVersion, skipVersions, includeVersions)
 }
 
 // UpdateFrom updates a single From, and returns an Update

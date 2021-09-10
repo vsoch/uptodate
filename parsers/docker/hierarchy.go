@@ -39,6 +39,7 @@ type DockerHierarchy struct {
 	Container       string
 	Filters         []string
 	StartAtVersion  string
+	EndAtVersion    string
 	SkipVersions    []string
 	IncludeVersions []string
 	tags            []string
@@ -155,6 +156,7 @@ func (s *DockerHierarchyParser) Load(path string) {
 		hier := DockerHierarchy{Container: conf.DockerHierarchy.Container.Name,
 			Filters:         conf.DockerHierarchy.Container.Filter,
 			StartAtVersion:  conf.DockerHierarchy.Container.StartAt,
+			EndAtVersion:    conf.DockerHierarchy.Container.EndAt,
 			SkipVersions:    conf.DockerHierarchy.Container.Skips,
 			IncludeVersions: conf.DockerHierarchy.Container.Includes,
 			Path:            subpath,
@@ -175,7 +177,7 @@ func (s *DockerHierarchyParser) Update(dryrun bool) error {
 	for _, root := range s.Roots {
 
 		// Get all versions (tags) based on filters and user preferences
-		versions := GetVersions(root.Container, root.Filters, root.StartAtVersion, root.SkipVersions, root.IncludeVersions)
+		versions := GetVersions(root.Container, root.Filters, root.StartAtVersion, root.EndAtVersion, root.SkipVersions, root.IncludeVersions)
 
 		// At this point we have a list of versions we want.
 		// We now compare existing to those that need to be created

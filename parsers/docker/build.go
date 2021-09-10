@@ -208,11 +208,16 @@ func (s *DockerBuildParser) Parse(path string, changesOnly bool) error {
 
 		// Parse into json
 		outJson, _ := json.Marshal(results)
+		output := string(outJson)
+
+		// If it's empty, still provide an empty list
+		if output == "" {
+			output = "[]"
+		}
 
 		// If we are running in a GitHub Action, set the outputs
-
 		if utils.IsGitHubAction() {
-			fmt.Printf("::set-output name=dockerbuild_matrix::%s\n", string(outJson))
+			fmt.Printf("::set-output name=dockerbuild_matrix::%s\n", output)
 		}
 	}
 	return nil

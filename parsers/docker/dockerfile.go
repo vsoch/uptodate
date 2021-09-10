@@ -303,7 +303,11 @@ func (s *DockerfileParser) Parse(path string, dryrun bool, changesOnly bool) err
 	// If we are running in a GitHub Action, set the outputs
 	if utils.IsGitHubAction() {
 		outJson, _ := json.Marshal(results)
-		fmt.Printf("::set-output name=dockerfile_matrix::%s\n", string(outJson))
+		output := string(outJson)
+		if output == "" {
+			output = "[]"
+		}
+		fmt.Printf("::set-output name=dockerfile_matrix::%s\n", output)
 	}
 	return nil
 }

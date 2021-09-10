@@ -70,7 +70,11 @@ func (s *DockerfileListParser) Parse(path string, includeArgs bool, changesOnly 
 	// If we are running in a GitHub Action, set the outputs
 	if utils.IsGitHubAction() {
 		outJson, _ := json.Marshal(results)
-		fmt.Printf("::set-output name=dockerfilelist_matrix::%s\n", string(outJson))
+		output := string(outJson)
+		if output == "" {
+			output = "[]"
+		}
+		fmt.Printf("::set-output name=dockerfilelist_matrix::%s\n", output)
 	}
 	return nil
 }

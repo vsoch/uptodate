@@ -232,7 +232,11 @@ func (s *DockerHierarchyParser) Update(dryrun bool) error {
 	// If we are running in a GitHub Action, set the outputs
 	if utils.IsGitHubAction() {
 		outJson, _ := json.Marshal(results)
-		fmt.Printf("::set-output name=dockerhierarchy_matrix::%s\n", string(outJson))
+		output := string(outJson)
+		if output == "" {
+			output = "[]"
+		}
+		fmt.Printf("::set-output name=dockerhierarchy_matrix::%s\n", output)
 	}
 
 	return nil

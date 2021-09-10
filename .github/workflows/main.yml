@@ -14,14 +14,19 @@ jobs:
       dockerbuildpredefined_matrix: ${{ steps.dockerbuildpredefined_check.outputs.dockerbuild_matrix }}
       git_matrix: ${{ steps.git.outputs.git_matrix }}
     steps:
-    - name: Force Install git latest
-      run: |
-        sudo apt-get install -y software-properties-common \
-        && sudo apt-get update \
-        && sudo add-apt-repository -y ppa:git-core/ppa \
-        && sudo apt-get update \
-        && sudo apt-get install -y git && \
-        git --version
+
+    # default will checkout detached, which won't work for using git in the container!
+    - uses: actions/checkout@v2
+      if: github.event_name == 'pull_request'
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.ref }}
+
+    - uses: actions/checkout@v2
+      if: github.event_name == 'push'
+      with:
+         fetch-depth: 0
+
     - name: Checkout Actions Repository
       uses: actions/checkout@v2
     - name: Test dockerfile uptodate GitHub Action

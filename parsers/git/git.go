@@ -44,6 +44,9 @@ func GetChangedFiles(path string, branch string) []GitChange {
 	return changedFiles
 }
 
+// Reference Prefix
+var RefPrefix = "refs/heads/"
+
 // GetChangedFiles filters to changed
 func GetChangedFilesStrings(path string, branch string) []string {
 	changes := GetChangedFiles(path, branch)
@@ -69,42 +72,27 @@ func GetAllChanges(path string, main string) []GitChange {
 		log.Fatalf("Cannot get branch pointed to by HEAD: %s\n", err)
 	}
 
-	// Get the main branch from the remote
-	remote, err := repo.Remote("origin")
-	if err != nil {
-		panic(err)
-	}
-	refList, err := remote.List(&gogit.ListOptions{})
-	if err != nil {
-		panic(err)
-	}
-	refPrefix := "refs/heads/"
-	var branch *plumbing.Reference
-	for _, ref := range refList {
-		refName := ref.Name().String()
-		if !strings.HasPrefix(refName, refPrefix) {
-			continue
-		}
-		branchName := refName[len(refPrefix):]
-		if branchName == main {
-			branch = ref
-		}
-	}
-
-	// If we didn't find the main branch
-	if branch == nil {
-		log.Fatalf("Could not find main branch %s\n", main)
-	}
-
-	// Get the commit object
+	// Get the HEAD commit object
 	commit, err := repo.CommitObject(ref.Hash())
 	if err != nil {
 		log.Fatalf("Cannot retrieve HEAD commit: %s\n", err)
 	}
 
-	prevCommit, err := repo.CommitObject(branch.Hash())
-	if err != nil {
-		log.Fatalf("Cannot get previous commit: %s\n", err)
+	// Get the name of the HEAD reference
+	refName := ref.Name().String()
+	if strings.HasPrefix(refName, RefPrefix) {
+		refName = refName[len(RefPrefix):]
+	}
+
+	// If we are on the main branch, use the previous commit
+	var prevCommit *object.Commit
+	if refName == main {
+		prevCommit, err = commit.Parent(0)
+		if err != nil {
+			log.Fatal("Issue getting previous commit!: %s\n", err)
+		}
+	} else {
+		prevCommit = getComparisonCommit(repo, main)
 	}
 
 	// Get trees for current and previous commit
@@ -129,6 +117,42 @@ func GetAllChanges(path string, main string) []GitChange {
 		changedFiles = append(changedFiles, change)
 	}
 	return changedFiles
+}
+
+// getComparisonCommit to compare to a HEAD
+func getComparisonCommit(repo *gogit.Repository, main string) *object.Commit {
+
+	// Get the main branch from the remote
+	remote, err := repo.Remote("origin")
+	if err != nil {
+		log.Fatalf("Cannot get remote origin: %s\n", err)
+	}
+	refList, err := remote.List(&gogit.ListOptions{})
+	if err != nil {
+		log.Fatalf("Cannot get reference list: %s\n", err)
+	}
+	var branch *plumbing.Reference
+	for _, ref := range refList {
+		refName := ref.Name().String()
+		if !strings.HasPrefix(refName, RefPrefix) {
+			continue
+		}
+		branchName := refName[len(RefPrefix):]
+		if branchName == main {
+			branch = ref
+		}
+	}
+
+	// If we didn't find the main branch
+	if branch == nil {
+		log.Fatalf("Could not find main branch %s\n", main)
+	}
+
+	prevCommit, err := repo.CommitObject(branch.Hash())
+	if err != nil {
+		log.Fatalf("Cannot get previous commit: %s\n", err)
+	}
+	return prevCommit
 }
 
 // Entrypoint to parse one or more Docker build matrices

@@ -345,7 +345,9 @@ $ ./uptodate git /path/to/repo --branch master
 ```
 
 You can also use this functionality with the `dockerbuild` or `dockerfile` or `dockerfilelist` parsers by adding `--changes`
-to only include changed files. The `--branch` flag works here as well, and can be added with `flags: --branch master` in the GitHub action.
+to only include changed files. The `--branch` flag works here as well, and can be added with `flags: --branch master` in the GitHub action. If it's found that you are on the same branch you are comparing against, instead
+we look one commit back, the assumption being that you merged and the changes are found in the
+last commit.
 
 ### GitHub Action
 

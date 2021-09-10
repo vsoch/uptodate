@@ -3,11 +3,15 @@ package git
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"path/filepath"
+	"strings"
+
 	gogit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/vsoch/uptodate/parsers"
 	"github.com/vsoch/uptodate/utils"
-	"log"
 )
 
 type GitParser struct {
@@ -29,11 +33,11 @@ func getChangeName(change *object.Change) string {
 }
 
 // GetChangedFiles filters to changed
-func GetChangedFiles(path string) []GitChange {
-	allChanges := GetAllChanges(path)
+func GetChangedFiles(path string, branch string) []GitChange {
+	allChanges := GetAllChanges(path, branch)
 	changedFiles := []GitChange{}
 	for _, change := range allChanges {
-		if change.Action == "Modify" || change.Action == "Add" {
+		if change.Action == "Modify" || change.Action == "Insert" {
 			changedFiles = append(changedFiles, change)
 		}
 	}
@@ -41,8 +45,8 @@ func GetChangedFiles(path string) []GitChange {
 }
 
 // GetChangedFiles filters to changed
-func GetChangedFilesStrings(path string) []string {
-	changes := GetChangedFiles(path)
+func GetChangedFilesStrings(path string, branch string) []string {
+	changes := GetChangedFiles(path, branch)
 	names := []string{}
 	for _, change := range changes {
 		names = append(names, change.Name)
@@ -51,7 +55,7 @@ func GetChangedFilesStrings(path string) []string {
 }
 
 // GetAllChanges for current git repository at some path
-func GetAllChanges(path string) []GitChange {
+func GetAllChanges(path string, main string) []GitChange {
 
 	changedFiles := []GitChange{}
 	repo, err := gogit.PlainOpen(path)
@@ -65,13 +69,40 @@ func GetAllChanges(path string) []GitChange {
 		log.Fatalf("Cannot get branch pointed to by HEAD: %s\n", err)
 	}
 
+	// Get the main branch from the remote
+	remote, err := repo.Remote("origin")
+	if err != nil {
+		panic(err)
+	}
+	refList, err := remote.List(&gogit.ListOptions{})
+	if err != nil {
+		panic(err)
+	}
+	refPrefix := "refs/heads/"
+	var branch *plumbing.Reference
+	for _, ref := range refList {
+		refName := ref.Name().String()
+		if !strings.HasPrefix(refName, refPrefix) {
+			continue
+		}
+		branchName := refName[len(refPrefix):]
+		if branchName == main {
+			branch = ref
+		}
+	}
+
+	// If we didn't find the main branch
+	if branch == nil {
+		log.Fatalf("Could not find main branch %s\n", main)
+	}
+
 	// Get the commit object
 	commit, err := repo.CommitObject(ref.Hash())
 	if err != nil {
 		log.Fatalf("Cannot retrieve HEAD commit: %s\n", err)
 	}
 
-	prevCommit, err := commit.Parent(0)
+	prevCommit, err := repo.CommitObject(branch.Hash())
 	if err != nil {
 		log.Fatalf("Cannot get previous commit: %s\n", err)
 	}
@@ -81,7 +112,7 @@ func GetAllChanges(path string) []GitChange {
 	prevTree, err := prevCommit.Tree()
 
 	// Get new, modified, deleted files
-	changes, err := currentTree.Diff(prevTree)
+	changes, err := prevTree.Diff(currentTree)
 	for _, change := range changes {
 		action, err := change.Action()
 		if err != nil {
@@ -91,6 +122,9 @@ func GetAllChanges(path string) []GitChange {
 
 		// Get list of involved files
 		name := getChangeName(change)
+
+		// Provide full paths
+		name = filepath.Join(path, name)
 		change := GitChange{Name: name, Action: action.String()}
 		changedFiles = append(changedFiles, change)
 	}
@@ -98,9 +132,9 @@ func GetAllChanges(path string) []GitChange {
 }
 
 // Entrypoint to parse one or more Docker build matrices
-func (s *GitParser) Parse(path string) error {
+func (s *GitParser) Parse(path string, branch string) error {
 
-	changedFiles := GetAllChanges(path)
+	changedFiles := GetAllChanges(path, branch)
 
 	// Format into a list of results
 	results := []parsers.Result{}

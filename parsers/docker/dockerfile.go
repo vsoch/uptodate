@@ -244,7 +244,7 @@ func (s *DockerfileParser) AddDockerfile(root string, path string) {
 }
 
 // Entrypoint to parse one or more Dockerfiles
-func (s *DockerfileParser) Parse(path string, dryrun bool, changesOnly bool) error {
+func (s *DockerfileParser) Parse(path string, dryrun bool, changesOnly bool, branch string) error {
 
 	// Find Dockerfiles in path and allow prefixes
 	paths, _ := utils.RecursiveFind(path, "Dockerfile", true)
@@ -253,7 +253,7 @@ func (s *DockerfileParser) Parse(path string, dryrun bool, changesOnly bool) err
 	if changesOnly {
 
 		// Create list of changes (Modify or Add)
-		changed := git.GetChangedFilesStrings(path)
+		changed := git.GetChangedFilesStrings(path, branch)
 		paths = utils.FindOverlap(paths, changed)
 	}
 

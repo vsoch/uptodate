@@ -361,6 +361,7 @@ jobs:
         run: echo ${result}
 ```
 
+Note that if you need to change the branch compared against, set `flags:` to include `--branch master`.
 
 #### Inputs
 

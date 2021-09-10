@@ -4,6 +4,39 @@
 To use the GitHub action, you can basically checkout your repository,
 and then select a parser and root to use.
 
+> **Important!** If you use any of the parsers with `--changes` (the GitHub action variables `changes:true` for a parser or just using the git parser, you _must_ perform a checkout that will checkout the ref in full. Without these steps, the respository will be in a detached head state, and the functionality will not work.
+
+Here are examples of how to do a checkout, either for a pull request or direct push.
+
+```yaml
+# default will checkout detached, which won't work for using git in the github action container!
+- uses: actions/checkout@v2
+  if: github.event_name == 'pull_request'
+  with:
+    fetch-depth: 0
+    ref: ${{ github.event.pull_request.head.ref }}
+
+- uses: actions/checkout@v2
+  if: github.event_name == 'push'
+  with:
+     fetch-depth: 0
+```
+
+If you forget to do this, you'll see this error:
+
+```bash
+              _            _       _       
+  _   _ _ __ | |_ ___   __| | __ _| |_ ___ 
+ | | | | '_ \| __/ _ \ / _  |/ _  | __/ _ \
+ | |_| | |_) | || (_) | (_| | (_| | ||  __/
+  \__,_| .__/ \__\___/ \__,_|\__,_|\__\___|
+       |_|                          git
+
+2021/09/10 01:05:08 Cannot get previous commit: object not found
+```
+
+If you don't use `--changes` / `changes: true` or the git parser, you need not worry.
+
 ## Dockerfile
 
 The following is an example of using the uptodate action to update Dockerfiles,

@@ -4,6 +4,10 @@ set -e
 
 which uptodate
 
+ls .
+git status
+git branch
+
 COMMAND="uptodate ${INPUT_PARSER} "
 
 # dry run?

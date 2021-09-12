@@ -250,6 +250,7 @@ dockerbuild:
       name: ubuntu
       type: container
       startat: "16.04"
+      endat: "20.04"
       filter: 
         - "^[0-9]+[.]04$" 
       skips:

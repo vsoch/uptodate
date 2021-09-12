@@ -62,7 +62,7 @@ type SpackDependency struct {
 }
 
 // Get Versions of a spack package relevant to a set of user preferences
-func (s *SpackPackage) GetVersions(filters []string, startAtVersion string, skipVersions []string, includeVersions []string) []string {
+func (s *SpackPackage) GetVersions(filters []string, startAtVersion string, endAtVersion string, skipVersions []string, includeVersions []string) []string {
 
 	// Sort versions from earliest to latest
 	contenders := []string{}
@@ -73,5 +73,5 @@ func (s *SpackPackage) GetVersions(filters []string, startAtVersion string, skip
 	// Sort from least to greatest
 	sort.Sort(sort.Reverse(sort.StringSlice(contenders)))
 
-	return parsers.GetVersions(contenders, filters, startAtVersion, skipVersions, includeVersions)
+	return parsers.GetVersions(contenders, filters, startAtVersion, endAtVersion, skipVersions, includeVersions)
 }

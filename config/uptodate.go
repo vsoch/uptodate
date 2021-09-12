@@ -11,6 +11,7 @@ type Container struct {
 	Name     string   `yaml:"name"`
 	Filter   []string `yaml:"filter,omitempty"`
 	StartAt  string   `yaml:"startat,omitempty"`
+	EndAt    string   `yaml:"endat,omitempty"`
 	Skips    []string `yaml:"skips,omitempty"`
 	Includes []string `yaml:"includes,omitempty"`
 }
@@ -32,6 +33,7 @@ type BuildArg struct {
 	Key      string            `yaml:"key,omitempty"`
 	Type     string            `yaml:"type,omitempty"`
 	StartAt  string            `yaml:"startat,omitempty"`
+	EndAt    string            `yaml:"endat,omitempty"`
 	Versions []string          `yaml:"versions,omitempty"`
 	Values   []string          `yaml:"values,omitempty"`
 	Filter   []string          `yaml:"filter,omitempty"`

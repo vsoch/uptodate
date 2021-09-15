@@ -45,9 +45,70 @@ The following commands are available.
 ?> $ uptodate dockerfile
 
 This command will read one or more Dockerfiles, and tell us if the digest is
-up to date. When run by default, it will automatically update digests.
+up to date. For this parser, an update means the digest of a `FROM` statement, or a build argument
+that follows a particular convention. 
 
-For example, to update a single Dockerfile, you would do:
+#### Digest Update
+
+For digests, you might see that:
+
+```dockerfile
+FROM ubuntu:20.04
+```
+
+is updated to
+
+```dockerfile
+FROM ubuntu:18.04@sha256:9bc830af2bef73276515a29aa896eedfa7bdf4bdbc5c1063b4c457a4bbb8cd79
+```
+
+And then subsequent updates will compare the digest to any known, newer one.
+
+#### Build Arguments
+
+For build arguments, it can only work given that you name them according to
+a known uptodate updater, and you provide a default. Here is a generate format:
+
+```dockerfile
+ARG uptodate_<build-arg-type>_<build-arg-value>=<default>
+```
+
+##### Spack Build Argument
+
+For example, here is how we might specify a build arg for a version of the spack package, "ace"
+
+```dockerfile
+ARG uptodate_spack_ace=6.5.6
+```
+After the updater runs, if it finds a new version 6.5.12, the line will read:
+
+```dockerfile
+ARG uptodate_spack_ace=6.5.12
+```
+
+##### Repository Build Argument
+
+Let's say we are installing spack itself, and we want our updater to find new releases
+on GitHub. The line might look like this:
+
+```
+ARG uptodate_github_spack__spack=v0.16.1
+```
+
+And the double underscore indicates indicates the separation between the organization
+and repository names. So the above will look for new releases on [https://github.com/spack/spack]
+and update as follows:
+
+```
+ARG uptodate_github_spack__spack=v0.16.2
+```
+
+Since we don't see any use cases for a container identifier as an ARG, we don't currently support this.
+But if you do, please [open an issue](https://github.com/vsoch/uptodate/issues).
+
+#### Example
+
+As an example example, to update a single Dockerfile, you would do:
 
 ```bash
 $ ./uptodate dockerfile /path/to/Dockerfile

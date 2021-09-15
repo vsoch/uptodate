@@ -128,12 +128,29 @@ func (d *Dockerfile) UpdateFroms() {
 		// An "empty" update will be returned if nothing to do
 		newUpdate := UpdateFrom(from.Value)
 		if !reflect.DeepEqual(newUpdate, Update{}) {
-
+			newUpdate.Updated = "FROM " + newUpdate.Updated
 			newUpdate.Original = from.Original
 			newUpdate.LineNo = from.StartIndex()
 			d.Updates = append(d.Updates, newUpdate)
 		}
 
+	}
+}
+
+// UpdateArgs, updates build args that match a known pattern
+// ARG uptodate_spack_ace=6.5.12  (spack example)
+// ARG uptodate_github_spack__spack=v0.16.1 (github release example)
+func (d *Dockerfile) UpdateArgs() {
+
+	// d.Updates should already be created from Update Froms
+	for _, buildarg := range d.Cmds["arg"] {
+		newUpdate := UpdateArg(buildarg.Value)
+		if !reflect.DeepEqual(newUpdate, Update{}) {
+			newUpdate.Updated = "ARG " + newUpdate.Updated
+			newUpdate.Original = buildarg.Original
+			newUpdate.LineNo = buildarg.StartIndex()
+			d.Updates = append(d.Updates, newUpdate)
+		}
 	}
 }
 
@@ -198,7 +215,7 @@ func (d *Dockerfile) Write() {
 		fmt.Printf("Updating %s to %s\n", update.Original, update.Updated)
 
 		// This ensures we keep the tag preserved for future checks, but change the file so it rebuilds
-		lines[update.LineNo] = "FROM " + update.Updated
+		lines[update.LineNo] = update.Updated
 	}
 	content := strings.Join(lines, "\n")
 	utils.WriteFile(d.Path, content)
@@ -240,6 +257,7 @@ func (s *DockerfileParser) AddDockerfile(root string, path string) {
 	dockerfile := Dockerfile{Path: path, Root: root}
 	dockerfile.ParseCommands()
 	dockerfile.UpdateFroms()
+	dockerfile.UpdateArgs()
 	s.Dockerfiles = append(s.Dockerfiles, dockerfile)
 }
 

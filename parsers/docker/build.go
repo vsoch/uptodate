@@ -46,7 +46,7 @@ func parseBuildArg(key string, buildarg config.BuildArg) []parsers.BuildVariable
 	return vars
 }
 
-// parseContainerBuildArg parses a spack build arg
+// parseContainerBuildArg parses a container build arg
 func parseContainerBuildArg(key string, buildarg config.BuildArg) []parsers.BuildVariable {
 
 	// We will return a list of BuildVariable
@@ -80,15 +80,7 @@ func parseContainerBuildArg(key string, buildarg config.BuildArg) []parsers.Buil
 func parseSpackBuildArg(key string, buildarg config.BuildArg) []parsers.BuildVariable {
 
 	// Get versions for current spack package
-	packageUrl := "https://spack.github.io/packages/data/packages/" + buildarg.Name + ".json"
-	response := utils.GetRequest(packageUrl)
-
-	// The response gets parsed into a spack package
-	pkg := spack.SpackPackage{}
-	err := json.Unmarshal([]byte(response), &pkg)
-	if err != nil {
-		log.Fatalf("Issue unmarshalling %s\n", packageUrl)
-	}
+	pkg := spack.GetSpackPackage(buildarg.Name)
 
 	// Get versions based on user preferences
 	versions := pkg.GetVersions(buildarg.Filter, buildarg.StartAt, buildarg.EndAt, buildarg.Skips, buildarg.Includes)

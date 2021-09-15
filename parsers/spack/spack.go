@@ -3,8 +3,12 @@ package spack
 // The spack Parser can parse Json from the spack packages repository
 
 import (
-	"github.com/vsoch/uptodate/parsers"
+	"encoding/json"
+	"log"
 	"sort"
+
+	"github.com/vsoch/uptodate/parsers"
+	"github.com/vsoch/uptodate/utils"
 )
 
 // A SpackAlias has a name and alias_for
@@ -59,6 +63,22 @@ type SpackVariant struct {
 type SpackDependency struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
+}
+
+// getSpackPackage uses the github.com/spack/packages API to get package metadata
+func GetSpackPackage(name string) SpackPackage {
+
+	// Get versions for current spack package
+	packageUrl := "https://spack.github.io/packages/data/packages/" + name + ".json"
+	response := utils.GetRequest(packageUrl, map[string]string{})
+
+	// The response gets parsed into a spack package
+	pkg := SpackPackage{}
+	err := json.Unmarshal([]byte(response), &pkg)
+	if err != nil {
+		log.Fatalf("Issue unmarshalling %s\n", packageUrl)
+	}
+	return pkg
 }
 
 // Get Versions of a spack package relevant to a set of user preferences

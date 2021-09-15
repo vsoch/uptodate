@@ -28,6 +28,13 @@ type BuildResult struct {
 	Description   string            `json:"description,omitempty"`
 }
 
+// An update to a FROM includes the original content and update
+type Update struct {
+	Original string
+	Updated  string
+	LineNo   int
+}
+
 // BuildVariable holds a key (name) and one or more values to parameterize over
 type BuildVariable struct {
 	Name   string

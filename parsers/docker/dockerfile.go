@@ -29,13 +29,6 @@ type Command struct {
 	Value     []string // The contents of the command (ex: `ubuntu:xenial`)
 }
 
-// An update to a FROM includes the original content and update
-type Update struct {
-	Original string
-	Updated  string
-	LineNo   int
-}
-
 // StartIndex is the StartLine -1 (for indexing)
 func (c *Command) StartIndex() int {
 	return c.StartLine - 1
@@ -52,7 +45,7 @@ type Dockerfile struct {
 	Path    string
 	Raw     string
 	Cmds    map[string][]Command // Lookup by command type for quicker parsing
-	Updates []Update
+	Updates []parsers.Update
 }
 
 // Determine if a Dockerfile contains BUILD args
@@ -120,14 +113,14 @@ func (d *Dockerfile) AddCommand(cmd df.Command) {
 func (d *Dockerfile) UpdateFroms() {
 
 	// Prepare a set of updates
-	d.Updates = []Update{}
+	d.Updates = []parsers.Update{}
 
 	// Loop through FROMs and update!
 	for _, from := range d.Cmds["from"] {
 
 		// An "empty" update will be returned if nothing to do
 		newUpdate := UpdateFrom(from.Value)
-		if !reflect.DeepEqual(newUpdate, Update{}) {
+		if !reflect.DeepEqual(newUpdate, parsers.Update{}) {
 			newUpdate.Updated = "FROM " + newUpdate.Updated
 			newUpdate.Original = from.Original
 			newUpdate.LineNo = from.StartIndex()
@@ -145,7 +138,7 @@ func (d *Dockerfile) UpdateArgs() {
 	// d.Updates should already be created from Update Froms
 	for _, buildarg := range d.Cmds["arg"] {
 		newUpdate := UpdateArg(buildarg.Value)
-		if !reflect.DeepEqual(newUpdate, Update{}) {
+		if !reflect.DeepEqual(newUpdate, parsers.Update{}) {
 			newUpdate.Updated = "ARG " + newUpdate.Updated
 			newUpdate.Original = buildarg.Original
 			newUpdate.LineNo = buildarg.StartIndex()
@@ -159,7 +152,7 @@ func (d *Dockerfile) UpdateArgs() {
 func (d *Dockerfile) ReplaceFroms(name string, tag string) {
 
 	// Prepare a set of updates
-	d.Updates = []Update{}
+	d.Updates = []parsers.Update{}
 
 	// Loop through FROMs and update! See UpdateFroms for comments
 	for _, from := range d.Cmds["from"] {
@@ -194,7 +187,7 @@ func (d *Dockerfile) ReplaceFroms(name string, tag string) {
 				updated += " " + extra
 			}
 
-			update := Update{Original: from.Original, Updated: updated, LineNo: from.StartIndex()}
+			update := parsers.Update{Original: from.Original, Updated: updated, LineNo: from.StartIndex()}
 			d.Updates = append(d.Updates, update)
 		}
 

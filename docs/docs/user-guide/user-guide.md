@@ -86,25 +86,43 @@ After the updater runs, if it finds a new version 6.5.12, the line will read:
 ARG uptodate_spack_ace=6.5.12
 ```
 
-##### Repository Build Argument
+##### GitHub Release Build Argument
 
 Let's say we are installing spack itself, and we want our updater to find new releases
 on GitHub. The line might look like this:
 
-```
-ARG uptodate_github_spack__spack=v0.16.1
+```dockerfile
+ARG uptodate_github_release_spack__spack=v0.16.1
 ```
 
 And the double underscore indicates indicates the separation between the organization
-and repository names. So the above will look for new releases on [https://github.com/spack/spack]
+and repository names. So the above will look for new releases on [https://github.com/spack/spack](https://github.com/spack/spack)
 and update as follows:
 
-```
-ARG uptodate_github_spack__spack=v0.16.2
+```dockerfile
+ARG uptodate_github_release_spack__spack=v0.16.2
 ```
 
 Since we don't see any use cases for a container identifier as an ARG, we don't currently support this.
 But if you do, please [open an issue](https://github.com/vsoch/uptodate/issues).
+
+#### GitHub Commit Build Argument
+
+If you want a more bleeding edge update (e.g., re-build the image every time there
+is a new commit) then you'll likely want a GitHub commit argument, which takes the following format:
+
+```dockerfile
+ARG uptodate_github_commit_<org>__<name>__<branch>=<release-tag>
+```
+
+For example, to update spack based on commits from develop, we might do:
+
+```dockerfile
+ARG uptodate_github_commit_spack__spack__develop=NA
+```
+
+We are using NA for the first check because we are lazy and don't want to look up
+the actual commit - uptodate will find it for us!
 
 #### Example
 

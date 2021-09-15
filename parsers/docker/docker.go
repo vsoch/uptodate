@@ -159,10 +159,9 @@ func UpdateArg(values []string) Update {
 			}
 		}
 
-	} else if strings.HasPrefix(name, "uptodate_github") {
-
+	} else if strings.HasPrefix(name, "uptodate_github_release") {
 		fmt.Printf("Found github release build arg prefix %s\n", arg)
-		name = strings.Replace(name, "uptodate_github_", "", 1)
+		name = strings.Replace(name, "uptodate_github_release_", "", 1)
 
 		// The repository name must be separated by __
 		if !strings.Contains(name, "__") {
@@ -187,6 +186,46 @@ func UpdateArg(values []string) Update {
 		release := releases[0]
 
 		updated := parts[0] + "=" + release.Name
+
+		// Add original content back
+		for _, extra := range values[1:] {
+			updated += " " + extra
+		}
+
+		// If the updated version is different from the original, update
+		if updated != original {
+			update = Update{Original: original, Updated: updated}
+		} else {
+			fmt.Println("No difference between:", updated, original)
+		}
+	} else if strings.HasPrefix(name, "uptodate_github_commit") {
+		fmt.Printf("Found github commit build arg prefix %s\n", arg)
+		name = strings.Replace(name, "uptodate_github_commit_", "", 1)
+
+		// The repository name must be separated by __
+		if !strings.Contains(name, "__") {
+			fmt.Printf("Cannot find double underscore to separate org from repo name: %s", name)
+			return update
+		}
+		orgRepoBranch := strings.SplitN(name, "__", 3)
+
+		// Organization __ Repository
+		if orgRepoBranch[0] == "" || orgRepoBranch[1] == "" || orgRepoBranch[2] == "" {
+			fmt.Printf("Org (%s), repository (%s), or branch (%s) is empty, cannot parse.", orgRepoBranch[0], orgRepoBranch[1], orgRepoBranch[2])
+			return update
+		}
+		repository := orgRepoBranch[0] + "/" + orgRepoBranch[1]
+		branch := orgRepoBranch[2]
+		fmt.Println(repository)
+		commits := github.GetCommits(repository, branch)
+
+		// The first in the list is the newest commit
+		if len(commits) == 0 {
+			fmt.Printf("%s has no commits, cannot update.", repository)
+		}
+		commit := commits[0]
+
+		updated := parts[0] + "=" + commit.SHA
 
 		// Add original content back
 		for _, extra := range values[1:] {

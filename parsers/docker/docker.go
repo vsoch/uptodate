@@ -28,10 +28,10 @@ func GetVersions(container string, filters []string, startAtVersion string, endA
 }
 
 // UpdateFrom updates a single From, and returns an Update
-func UpdateFrom(fromValue []string) Update {
+func UpdateFrom(fromValue []string) parsers.Update {
 
 	// We will return an update, empty if none
-	update := Update{}
+	update := parsers.Update{}
 
 	// This is the full container name, e.g., ubuntu:16.04
 	container := fromValue[0]
@@ -92,7 +92,7 @@ func UpdateFrom(fromValue []string) Update {
 
 			// TODO I've never seen a multi-line FROM, but this will need
 			// adjustment if one exists to replace a range of lines
-			update = Update{Original: original, Updated: updated}
+			update = parsers.Update{Original: original, Updated: updated}
 
 		} else {
 			fmt.Println("No difference between:", updated, original)
@@ -102,10 +102,10 @@ func UpdateFrom(fromValue []string) Update {
 }
 
 // UpdateArg updates a build arg that is a known pattern
-func UpdateArg(values []string) Update {
+func UpdateArg(values []string) parsers.Update {
 
 	// We will return an update, empty if none
-	update := Update{}
+	update := parsers.Update{}
 
 	// This is the full argument with =
 	arg := values[0]
@@ -116,12 +116,8 @@ func UpdateArg(values []string) Update {
 		return update
 	}
 
-	// Keep the original for later comparison
-	original := strings.Join(values, " ")
-
 	// Split into buildarg name and value
 	parts := strings.SplitN(arg, "=", 2)
-
 	name := parts[0]
 	value := parts[1]
 
@@ -133,72 +129,11 @@ func UpdateArg(values []string) Update {
 
 	// Determine if it matches spack or Github
 	if strings.HasPrefix(name, "uptodate_spack") {
-		fmt.Printf("Found spack build arg prefix %s\n", arg)
-
-		name = strings.Replace(name, "uptodate_spack_", "", 1)
-
-		// Get versions for current spack package
-		pkg := spack.GetSpackPackage(name)
-
-		// Should be sorted with newest first
-		if len(pkg.Versions) > 0 {
-
-			updated := parts[0] + "=" + pkg.Versions[0].Name
-
-			// Add any comments back
-			for _, extra := range values[1:] {
-				updated += " " + extra
-			}
-
-			// If the updated version is different from the original, update
-			if updated != original {
-				update = Update{Original: original, Updated: updated}
-
-			} else {
-				fmt.Println("No difference between:", updated, original)
-			}
-		}
-
-	} else if strings.HasPrefix(name, "uptodate_github") {
-
-		fmt.Printf("Found github release build arg prefix %s\n", arg)
-		name = strings.Replace(name, "uptodate_github_", "", 1)
-
-		// The repository name must be separated by __
-		if !strings.Contains(name, "__") {
-			fmt.Printf("Cannot find double underscore to separate org from repo name: %s", name)
-			return update
-		}
-		orgRepo := strings.SplitN(name, "__", 2)
-
-		// Organization __ Repository
-		if orgRepo[0] == "" || orgRepo[1] == "" {
-			fmt.Printf("Org (%s) or repository (%s) is empty, cannot parse.", orgRepo[0], orgRepo[1])
-			return update
-		}
-		repository := orgRepo[0] + "/" + orgRepo[1]
-		fmt.Println(repository)
-		releases := github.GetReleases(repository)
-
-		// The first in the list is the newest release
-		if len(releases) == 0 {
-			fmt.Printf("%s has no releases, cannot update.", repository)
-		}
-		release := releases[0]
-
-		updated := parts[0] + "=" + release.Name
-
-		// Add original content back
-		for _, extra := range values[1:] {
-			updated += " " + extra
-		}
-
-		// If the updated version is different from the original, update
-		if updated != original {
-			update = Update{Original: original, Updated: updated}
-		} else {
-			fmt.Println("No difference between:", updated, original)
-		}
+		return spack.UpdateBuildArg(values)
+	} else if strings.HasPrefix(name, "uptodate_github_release") {
+		return github.UpdateReleaseBuildArg(values)
+	} else if strings.HasPrefix(name, "uptodate_github_commit") {
+		return github.UpdateCommitBuildArg(values)
 	}
 	return update
 }

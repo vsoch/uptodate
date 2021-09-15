@@ -82,7 +82,8 @@ func GetSpackPackage(name string) SpackPackage {
 }
 
 // Get Versions of a spack package relevant to a set of user preferences
-func (s *SpackPackage) GetVersions(filters []string, startAtVersion string, endAtVersion string, skipVersions []string, includeVersions []string) []string {
+func (s *SpackPackage) GetVersions(filters []string, startAtVersion string, endAtVersion string,
+	skipVersions []string, includeVersions []string) []string {
 
 	// Sort versions from earliest to latest
 	contenders := []string{}

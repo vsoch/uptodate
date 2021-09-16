@@ -48,7 +48,7 @@ type Dockerfile struct {
 	Updates []parsers.Update
 }
 
-// Determine if a Dockerfile contains BUILD args
+// Determine if a Dockerfile contains build args
 func (d *Dockerfile) HasBuildArgs() bool {
 
 	// If we don't have commands yet, try to parse
@@ -58,6 +58,36 @@ func (d *Dockerfile) HasBuildArgs() bool {
 
 	if values, ok := d.Cmds["arg"]; ok {
 		return len(values) > 0
+	}
+
+	// We don't have any build args
+	return false
+}
+
+// Determine if a Dockerfile contains EMPTY build args
+func (d *Dockerfile) HasEmptyBuildArgs() bool {
+
+	// If we don't have commands yet, try to parse
+	if len(d.Cmds) == 0 {
+		d.ParseCommands()
+	}
+
+	if values, ok := d.Cmds["arg"]; ok {
+		for _, cmd := range values {
+
+			// No value defined
+			if !strings.Contains(cmd.Value[0], "=") {
+				return true
+			}
+
+			// An empty value defined
+			parts := strings.SplitN(cmd.Value[0], "=", 2)
+			if len(parts) == 1 || parts[1] == "" {
+				return true
+			}
+
+		}
+		return false
 	}
 
 	// We don't have any build args

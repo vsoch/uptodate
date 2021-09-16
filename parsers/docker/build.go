@@ -8,6 +8,7 @@ import (
 	"log"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/vsoch/uptodate/config"
@@ -212,7 +213,7 @@ func (s *DockerBuildParser) Parse(path string, changesOnly bool, branch string) 
 
 		// If we are running in a GitHub Action, set the outputs
 		if utils.IsGitHubAction() {
-			fmt.Printf("::set-output name=dockerbuild_matrix_empty::%s\n", isEmpty)
+			fmt.Printf("::set-output name=dockerbuild_matrix_empty::%s\n", strconv.FormatBool(isEmpty))
 			fmt.Printf("::set-output name=dockerbuild_matrix::%s\n", output)
 		}
 	}

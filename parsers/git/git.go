@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	gogit "github.com/go-git/go-git/v5"
@@ -182,7 +183,7 @@ func (s *GitParser) Parse(path string, branch string) error {
 	// If we are running in a GitHub Action, set the outputs
 	if utils.IsGitHubAction() {
 		fmt.Printf("::set-output name=git_matrix::%s\n", string(outJson))
-		fmt.Printf("::set-output name=git_matrix_empty::%s\n", isEmpty)
+		fmt.Printf("::set-output name=git_matrix_empty::%s\n", strconv.FormatBool(isEmpty))
 	}
 	return nil
 }

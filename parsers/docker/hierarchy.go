@@ -23,6 +23,7 @@ import (
 	"log"
 	"os"
 	fpath "path"
+	"strconv"
 
 	df "github.com/asottile/dockerfile"
 	"github.com/vsoch/uptodate/config"
@@ -241,7 +242,7 @@ func (s *DockerHierarchyParser) Update(dryrun bool) error {
 			isEmpty = true
 		}
 		fmt.Printf("::set-output name=dockerhierarchy_matrix::%s\n", output)
-		fmt.Printf("::set-output name=dockerhierarchy_matrix_empty::%s\n", isEmpty)
+		fmt.Printf("::set-output name=dockerhierarchy_matrix_empty::%s\n", strconv.FormatBool(isEmpty))
 	}
 
 	return nil

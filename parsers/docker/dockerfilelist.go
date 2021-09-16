@@ -5,6 +5,7 @@ package docker
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/vsoch/uptodate/parsers"
 	"github.com/vsoch/uptodate/parsers/git"
@@ -77,7 +78,7 @@ func (s *DockerfileListParser) Parse(path string, includeEmptyArgs bool, include
 			isEmpty = true
 		}
 		fmt.Printf("::set-output name=dockerfilelist_matrix::%s\n", output)
-		fmt.Printf("::set-output name=dockerfilelist_matrix_empty::%s\n", isEmpty)
+		fmt.Printf("::set-output name=dockerfilelist_matrix_empty::%s\n", strconv.FormatBool(isEmpty))
 	}
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strconv"
 	"strings"
 
 	df "github.com/asottile/dockerfile"
@@ -351,7 +352,7 @@ func (s *DockerfileParser) Parse(path string, dryrun bool, changesOnly bool, bra
 			isEmpty = true
 		}
 		fmt.Printf("::set-output name=dockerfile_matrix::%s\n", output)
-		fmt.Printf("::set-output name=dockerfile_matrix_empty::%s\n", isEmpty)
+		fmt.Printf("::set-output name=dockerfile_matrix_empty::%s\n", strconv.FormatBool(isEmpty))
 	}
 	return nil
 }

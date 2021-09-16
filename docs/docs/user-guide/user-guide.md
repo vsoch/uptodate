@@ -288,6 +288,19 @@ if you just want to list updated (modified or added) you can do:
 $ uptodate dockerfilelist --changes
 ```
 
+If you want to exclude Dockerfiles with any build args:
+
+```bash
+$ uptodate dockerfilelist --no-build-args
+```
+
+or just empty build args:
+
+```bash
+$ uptodate dockerfilelist --no-empty-build-args
+```
+
+
 ### Docker Build
 
 Docker build is similar to the Docker Hierarchy updater in that it reads an `uptodate.yaml`

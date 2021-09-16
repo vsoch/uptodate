@@ -23,7 +23,7 @@ inputs:
     default: false
 
   flags:
-    description: "Extra flags for the parser (e.g., --no-build-args for dockerfilelist)"
+    description: "Extra flags for the parser (e.g., --no-build-args or --no-empty-build-args for dockerfilelist)"
     required: false
     default: ""
 

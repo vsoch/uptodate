@@ -12,7 +12,8 @@ type DockerfileListArgs struct {
 }
 
 type DockerfileListFlags struct {
-	NoIncludeArgs bool   `long:"no-build-args" desc:"Do not include Dockerfile with build args (defaults to false)"`
+	NoEmptyArgs   bool   `long:"no-empty-build-args" desc:"Do not include Dockerfile with empty build args (defaults to false)"`
+	NoIncludeArgs bool   `long:"no-build-args" desc:"Do not include Dockerfile with any build args (defaults to false)"`
 	Changes       bool   `long:"changes" desc:"Only consider changed uptodate files"`
 	Branch        string `long:"branch" desc:"Branch to compare HEAD against, defaults to main"`
 }
@@ -49,5 +50,5 @@ func RunDockerfileList(r *cmd.Root, c *cmd.Sub) {
 
 	// Update the dockerfiles with a Dockerfile parser
 	parser := docker.DockerfileListParser{}
-	parser.Parse(args.Root[0], !flags.NoIncludeArgs, flags.Changes, flags.Branch)
+	parser.Parse(args.Root[0], !flags.NoEmptyArgs, !flags.NoIncludeArgs, flags.Changes, flags.Branch)
 }

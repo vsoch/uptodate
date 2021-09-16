@@ -71,10 +71,13 @@ func (s *DockerfileListParser) Parse(path string, includeEmptyArgs bool, include
 	if utils.IsGitHubAction() {
 		outJson, _ := json.Marshal(results)
 		output := string(outJson)
+		isEmpty := false
 		if output == "" {
 			output = "[]"
+			isEmpty = true
 		}
 		fmt.Printf("::set-output name=dockerfilelist_matrix::%s\n", output)
+		fmt.Printf("::set-output name=dockerfilelist_matrix_empty::%s\n", isEmpty)
 	}
 	return nil
 }

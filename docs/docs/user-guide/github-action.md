@@ -390,9 +390,14 @@ The following outputs are provided by the action:
 | Name | Description |
 |------|-------------|
 | dockerfile_matrix | A matrix of Dockerfile changes with name and filename set to the Dockerfile name |
-| dockerhiearchy_matrix |A matrix of new Dockerfiles and the corresponding tag (Name) |
+| dockerfile_matrix_empty | A boolean true/false if the matrix is empty or not |
+| dockerhierarchy_matrix |A matrix of new Dockerfiles and the corresponding tag (Name) |
+| dockerhierarchy_matrix_empty | A boolean true/false if the matrix is empty or not |
 | dockerfilelist_matrix | The result of Dockerfile list, akin to docker_file matrix but including all files |
+| dockerfilelist_matrix_empty | A boolean true/false if the matrix is empty or not |
 | dockerbuild_matrix | The result of the Docker Build parser, a build matrix to pipe into next steps |
+| dockerbuild_matrix_empty | A boolean true/false if the matrix is empty or not |
 | git_matrix | A matrix of changed files, each with a `Name` (change type) and `Filename` |
+| git_matrix_empty | A boolean true/false if the matrix is empty or not |
 
 See the [examples](https://github.com/vsoch/uptodate/tree/main/.github/examples) folder for a more detailed example.

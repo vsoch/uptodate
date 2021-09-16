@@ -172,10 +172,17 @@ func (s *GitParser) Parse(path string, branch string) error {
 
 	// Parse into json
 	outJson, _ := json.Marshal(results)
+	output := string(outJson)
+	isEmpty := false
+	if output == "" {
+		output = "[]"
+		isEmpty = true
+	}
 
 	// If we are running in a GitHub Action, set the outputs
 	if utils.IsGitHubAction() {
 		fmt.Printf("::set-output name=git_matrix::%s\n", string(outJson))
+		fmt.Printf("::set-output name=git_matrix_empty::%s\n", isEmpty)
 	}
 	return nil
 }

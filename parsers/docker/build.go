@@ -204,12 +204,15 @@ func (s *DockerBuildParser) Parse(path string, changesOnly bool, branch string) 
 		output := string(outJson)
 
 		// If it's empty, still provide an empty list
+		isEmpty := false
 		if output == "" {
 			output = "[]"
+			isEmpty = true
 		}
 
 		// If we are running in a GitHub Action, set the outputs
 		if utils.IsGitHubAction() {
+			fmt.Printf("::set-output name=dockerbuild_matrix_empty::%s\n", isEmpty)
 			fmt.Printf("::set-output name=dockerbuild_matrix::%s\n", output)
 		}
 	}

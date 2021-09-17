@@ -28,10 +28,10 @@ type ContainerNamer struct {
 }
 
 type Label struct {
-	Original string
-	Type     string
-	Name     string
-	Value    string
+	Key   string
+	Type  string
+	Name  string
+	Value string
 }
 
 // Entrypoint to parse one or more Docker build matrices
@@ -53,6 +53,9 @@ func (s *DockerBuildParser) Parse(path string, changesOnly bool, branch string, 
 		fmt.Println("No changes to parse.")
 	}
 
+	// Prepare a list of build results
+	results := []parsers.BuildResult{}
+
 	// Look at each found path, parse into build matrix
 	for _, subpath := range paths {
 		conf := config.Load(subpath)
@@ -68,19 +71,16 @@ func (s *DockerBuildParser) Parse(path string, changesOnly bool, branch string, 
 		namingList := []ContainerNamer{}
 		matrix := GetBuildMatrix(conf, &namingLookup, &namingList)
 
-		// Prepare a list of build results
-		results := []parsers.BuildResult{}
-
 		// Find Dockerfile in subpath
 		dirnamePath := filepath.Dir(subpath)
 		dockerfiles, _ := utils.RecursiveFind(dirnamePath, "Dockerfile", true)
 		dirname := filepath.Base(dirnamePath)
 
 		// For each container name, look up latest variables and generate labels lookup
-		latestValues := getLatestValues(matrix, namingList)
+		latestValues := getLatestValues(registry, matrix, namingLookup, namingList, dirname)
 
 		// Now get current values for each container (e.g., hashes)
-		currentValues := getCurrentValues(registry, matrix, namingLookup, latestValues, dirname)
+		currentValues := getCurrentValues(registry, matrix, namingLookup, dirname)
 
 		// We need a new build for each Dockerfile found (hopefully not many)
 		for _, dockerfile := range dockerfiles {
@@ -105,57 +105,74 @@ func (s *DockerBuildParser) Parse(path string, changesOnly bool, branch string, 
 				}
 			}
 		}
+	}
 
-		// Parse into json
-		outJson, _ := json.Marshal(results)
-		output := string(outJson)
+	// Parse into json
+	outJson, _ := json.Marshal(results)
+	output := string(outJson)
 
-		// If it's empty, still provide an empty list
-		isEmpty := false
-		if output == "" {
-			output = "[]"
-			isEmpty = true
-		}
+	// If it's empty, still provide an empty list
+	isEmpty := false
+	if output == "" {
+		output = "[]"
+		isEmpty = true
+	}
 
-		// If we are running in a GitHub Action, set the outputs
-		if utils.IsGitHubAction() {
-			fmt.Printf("::set-output name=dockerbuild_matrix_empty::%s\n", strconv.FormatBool(isEmpty))
-			fmt.Printf("::set-output name=dockerbuild_matrix::%s\n", output)
-		}
+	// If we are running in a GitHub Action, set the outputs
+	if utils.IsGitHubAction() {
+		fmt.Printf("::set-output name=dockerbuild_matrix_empty::%s\n", strconv.FormatBool(isEmpty))
+		fmt.Printf("::set-output name=dockerbuild_matrix::%s\n", output)
 	}
 	return nil
 }
 
 // compareWithLatest compares current with latest values, and (assuming we have all variables that exist)
 // determines if we should run the build.
-func compareWithLatest(containerName string, latestValues map[string]string, currentValues map[string]map[string]Label) bool {
+func compareWithLatest(containerName string, latest map[string]map[string]string, currentValues map[string]map[string]Label) bool {
 
-	// By default be conservative and rebuild
+	// This case shouldn't happen, the key is always there, but be conservative
 	currentLabels, ok := currentValues[containerName]
 	if !ok {
-		return true
+		return false
+	}
+	latestValues, ok := latest[containerName]
+	if !ok {
+		return false
 	}
 
-	// Break apart latest values into keys and tags
-	var lookup = map[string]map[string]string{}
-	for latest, value := range latestValues {
-		parts := strings.SplitN(latest, ":", 2)
-		lookup[parts[0]] = map[string]string{}
-
-		// lookup[<keyM][<tag>] = value
-		lookup[parts[0]][parts[1]] = value
+	// If we have no current labels, but we have latest, we need rebuild
+	if len(currentLabels) == 0 && len(latestValues) > 0 {
+		return true
 	}
 
 	// For each current label, if we have a matching, check against
 	for _, label := range currentLabels {
-		fmt.Println(label)
+
+		// For a container, the label.value is <uri>:<tag>@sha
+		//parts := strings.SplitN(label.Value, ":", 2)
+		//tag := strings.SplitN(parts[1], "@", 2)[0]
+
+		// This level looks up the label from the image config
+		latestValue, ok := latestValues[label.Name]
+		if ok {
+			if latestValue != label.Value {
+				return true
+
+				// The values are equal, don't rebuild
+			} else {
+				return false
+			}
+			// If we have the label but no latest, do not rebuild
+		} else {
+			return false
+		}
 	}
-	return true
+	return false
 }
 
 // getCurrentValues retrieves and parses current container label values
 func getCurrentValues(registry string, matrix []map[string]string, namingLookup map[string][]ContainerNamer,
-	latest map[string]string, dirname string) map[string]map[string]Label {
+	dirname string) map[string]map[string]Label {
 
 	// Prepare current values
 	var currentValues = map[string]map[string]Label{}
@@ -170,14 +187,12 @@ func getCurrentValues(registry string, matrix []map[string]string, namingLookup 
 
 		// We can look up variables in the config
 		containerName := generateContainerName(registry, entry, namingLookup, dirname)
-		fmt.Println(containerName)
-
 		withoutTag := strings.SplitN(containerName, ":", 2)[0]
 
 		// Get a list of known tags to start
 		tags := GetImageTags(withoutTag)
 
-		if len(tags) == 9 {
+		if len(tags) == 0 {
 			fmt.Printf("Container %s does not have any tags, skipping lookup.", withoutTag)
 			continue
 		}
@@ -187,21 +202,17 @@ func getCurrentValues(registry string, matrix []map[string]string, namingLookup 
 		imageConf := GetImageConfig(containerName)
 
 		// For each label in the image conf, if it matches an uptodate_matrix, save it!
-		for _, original := range imageConf.Config.Labels {
-			if strings.HasPrefix(original, "uptodate_matrix_") {
+		for key, original := range imageConf.Config.Labels {
+			if strings.HasPrefix(key, "uptodate_matrix_") {
 
 				// Should split into uptodate_matrix_<type>_<key>=<value>
-				label := strings.Replace(original, "uptodate_matrix_", "", 1)
-
-				// <type>_<key>=<value>
-				parts := strings.SplitN(label, "=", 2)
-				value := parts[1]
+				label := strings.Replace(key, "uptodate_matrix_", "", 1)
 
 				// <type>_<key>
-				parts = strings.SplitN(parts[0], "_", 2)
+				parts := strings.SplitN(label, "_", 2)
 				argType := parts[0]
 				argKey := parts[1]
-				currentValues[containerName][argKey] = Label{Original: original, Name: argKey, Type: argType, Value: value}
+				currentValues[containerName][argKey] = Label{Key: key, Name: argKey, Type: argType, Value: original}
 			}
 		}
 	}
@@ -209,12 +220,20 @@ func getCurrentValues(registry string, matrix []map[string]string, namingLookup 
 }
 
 // getLatestValues returns a lookup of latest build arg namers and tags tha
-func getLatestValues(matrix []map[string]string, namingList []ContainerNamer) map[string]string {
+func getLatestValues(registry string, matrix []map[string]string, namingLookup map[string][]ContainerNamer,
+	namingList []ContainerNamer, dirname string) map[string]map[string]string {
 
 	// current values for different build args
-	var currentValues = map[string]string{}
+	var currentValues = map[string]map[string]string{}
+
+	// keep a cache based on container name
+	var cache = map[string]string{}
 
 	for _, entry := range matrix {
+
+		// Generate container name to keep track of what variables are needed for each container
+		containerName := generateContainerName(registry, entry, namingLookup, dirname)
+		currentValues[containerName] = map[string]string{}
 
 		// Get updated values for each known build container argument
 		for _, namer := range namingList {
@@ -228,12 +247,12 @@ func getLatestValues(matrix []map[string]string, namingList []ContainerNamer) ma
 					continue
 				}
 
-				// If we already have an entry, continue
-				if _, ok := currentValues[namer.Key+":"+tag]; ok {
-					continue
+				// Lookup new value, or just use the cache
+				if cached, ok := cache[namer.Slug+":"+tag]; ok {
+					currentValues[containerName][namer.Key] = cached
+				} else {
+					currentValues[containerName][namer.Key] = getUpdatedContainer(namer.Slug + ":" + tag)
 				}
-
-				currentValues[namer.Key+":"+tag] = getUpdatedContainer(namer.Slug + ":" + tag)
 			}
 		}
 
@@ -423,16 +442,21 @@ func generateBuildDescription(buildargs map[string]string, dockerfile string) st
 }
 
 // getLabelLookup for each container
-func getLabelLookup(buildargs map[string]string, lookup map[string][]ContainerNamer, latestValues map[string]string) map[string]string {
+func getLabelLookup(buildargs map[string]string, lookup map[string][]ContainerNamer, latestValues map[string]map[string]string) map[string]string {
 
 	var labels = map[string]string{}
 
 	// We can only currently generate labels (and update) containers
 	for _, namer := range lookup["container"] {
-		key := namer.Key + ":" + buildargs[namer.Key]
-		value, ok := latestValues[key]
+
+		// Do we know of the key?
+		argmeta, ok := latestValues[namer.Key]
 		if ok {
-			labels["uptodate_matrix_"+namer.Type+"_"+namer.Key] = value
+			// Do we know of the tag?
+			value, ok := argmeta[buildargs[namer.Key]]
+			if ok {
+				labels["uptodate_matrix_"+namer.Type+"_"+namer.Key] = value
+			}
 		}
 	}
 	return labels

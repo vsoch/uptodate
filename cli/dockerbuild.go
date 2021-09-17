@@ -13,8 +13,9 @@ type DockerBuildArgs struct {
 }
 
 type DockerBuildFlags struct {
-	Changes bool   `long:"changes" desc:"Only consider changed uptodate files"`
-	Branch  string `long:"branch" desc:"Branch to compare HEAD against, defaults to main"`
+	Registry string `long:"registry" desc:"A registry is required to look up changes from previous builds."`
+	Changes  bool   `long:"changes" desc:"Only consider changed uptodate files"`
+	Branch   string `long:"branch" desc:"Branch to compare HEAD against, defaults to main"`
 }
 
 // Dockerfile updates one or more Dockerfile
@@ -52,6 +53,6 @@ func RunDockerBuild(r *cmd.Root, c *cmd.Sub) {
 
 	// Update the dockerfiles with a Dockerfile parser
 	parser := docker.DockerBuildParser{}
-	parser.Parse(args.Root[0], flags.Changes, flags.Branch)
+	parser.Parse(args.Root[0], flags.Changes, flags.Branch, flags.Registry)
 
 }

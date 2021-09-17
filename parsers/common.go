@@ -88,7 +88,12 @@ func GetVersions(contenders []string, filters []string, startAtVersion string, e
 
 	// Do we have semantic versions? If so, this is the better sort
 	if HasSemanticVersions(contenders) {
-		contenders = SortVersions(contenders)
+		newContenders := SortVersions(contenders)
+
+		// But only use if it doesn't remove everything!
+		if len(newContenders) > 0 {
+			contenders = newContenders
+		}
 	}
 
 	// We look for tags based on filters (this is an OR between them)

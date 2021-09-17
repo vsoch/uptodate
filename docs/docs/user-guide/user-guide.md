@@ -407,9 +407,17 @@ And to only include changed uptodate.yaml files:
 ```bash
 $ uptodate dockerbuild --changes
 ```
+And finally, if you want the most functionality (not just to look for changes to files but
+also check previous images and rebuild those that have detailed changes in build args) then you
+need to provide uptodate with the registry that the images are intended for (and this also
+assumes you use the build names that are generated).
 
-We could add support for changed associated Dockerfile too - please [open an issue](https://github.com/vsoch/uptodate/issues)
-is this is interesting to you.
+```bash
+$ uptodate dockerbuild --registry ghcr.io/rse-radiuss
+```
+
+Note that the registry flag is enough to indicate that you want to look for changes of
+this type.
 
 ### Git
 

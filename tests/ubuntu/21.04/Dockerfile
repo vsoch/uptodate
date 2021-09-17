@@ -1,3 +1,4 @@
+FROM ubuntu:20.04
 LABEL maintainer vsoch
 
 # Testing a github release update

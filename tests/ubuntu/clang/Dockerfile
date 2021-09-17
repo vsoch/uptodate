@@ -1,5 +1,5 @@
 ARG UBUNTU_VERSION
-FROM ghcr.io/rse-radiuss/ubuntu:$UBUNTU_IMAGE
+FROM ghcr.io/rse-radiuss/ubuntu:$UBUNTU_VERSION
 
 # Version of LLVM
 # This is an example of a manual type of build arg

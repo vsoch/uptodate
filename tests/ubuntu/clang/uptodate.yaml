@@ -1,5 +1,5 @@
 dockerbuild:
-    
+
   # Build all possible versions
   build_args:
 
@@ -21,7 +21,6 @@ dockerbuild:
 
     # This will be parsed by the Dockerfile parser, name is the container name
     ubuntu_version:
-
       key: ubuntu
       name: ubuntu
       type: container

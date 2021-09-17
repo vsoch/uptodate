@@ -11,7 +11,6 @@ import (
 	"github.com/vsoch/uptodate/parsers"
 	"github.com/vsoch/uptodate/parsers/github"
 	"github.com/vsoch/uptodate/parsers/spack"
-	"github.com/vsoch/uptodate/utils"
 )
 
 // GetVersions of existing container within user preferences
@@ -19,11 +18,8 @@ func GetVersions(container string, filters []string, startAtVersion string, endA
 	skipVersions []string, includeVersions []string) []string {
 
 	// Get tags for current container image
-	tagsUrl := "https://crane.ggcr.dev/ls/" + container
-	response := utils.GetRequest(tagsUrl, map[string]string{})
-	tags := strings.Split(response, "\n")
+	tags := GetImageTags(container)
 	sort.Sort(sort.StringSlice(tags))
-
 	return parsers.GetVersions(tags, filters, startAtVersion, endAtVersion, skipVersions, includeVersions)
 }
 
@@ -75,12 +71,10 @@ func UpdateFrom(fromValue []string) parsers.Update {
 
 	// Get the updated container hash for the tag
 	url := container + ":" + tag
-	out, found := lookout.CheckUpdate("docker://" + url)
+	updated := getUpdatedContainer(url)
 
-	if found {
-		// Prepare the updated string, the result.Name is digest
-		result := *out
-		updated := url + "@" + result.Name
+	// Do we have an update?
+	if updated != "" {
 
 		// Add original content back
 		for _, extra := range fromValue[1:] {
@@ -99,6 +93,19 @@ func UpdateFrom(fromValue []string) parsers.Update {
 		}
 	}
 	return update
+}
+
+// getUpdatedContainer uses lookout to get an updated sha
+// No update returns an empty string
+func getUpdatedContainer(url string) string {
+	out, found := lookout.CheckUpdate("docker://" + url)
+
+	var updated string
+	if found {
+		result := *out
+		updated = url + "@" + result.Name
+	}
+	return updated
 }
 
 // UpdateArg updates a build arg that is a known pattern

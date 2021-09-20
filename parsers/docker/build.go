@@ -66,6 +66,12 @@ func (s *DockerBuildParser) Parse(path string, changesOnly bool, branch string, 
 			continue
 		}
 
+		// If the builf isn't active, skip
+		if !conf.DockerBuild.Active {
+			fmt.Printf("Skipping %s, not active\n", subpath)
+			continue
+		}
+
 		// Get a matrix, either from the config or on the fly generation, and naming lookup
 		namingLookup := make(map[string][]ContainerNamer)
 		namingList := []ContainerNamer{}

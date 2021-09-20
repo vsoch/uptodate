@@ -1,5 +1,8 @@
 dockerbuild:
 
+  # Is the build active?
+#  active: false
+
   # Build all possible versions
   build_args:
 

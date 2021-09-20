@@ -25,6 +25,7 @@ type DockerHierarchy struct {
 type DockerBuild struct {
 	BuildArgs map[string]BuildArg `yaml:"build_args"`
 	Matrix    map[string][]string `yaml:"matrix,omitempty"`
+	Active    bool `yaml:"active,omitempty"`
 }
 
 // BuildArg expects metadata for building from a variable, spack, or other
@@ -77,10 +78,17 @@ func readConfig(yamlStr []byte) Conf {
 		}
 
 		// Otherwise it could be a matrix
-		matrixArgs := item.(map[string]interface{})
-		if matrixitem, ok := matrixArgs["matrix"]; ok {
+		if matrixitem, ok := buildArgs["matrix"]; ok {
 			c.DockerBuild.Matrix = convertDockerBuildMatrix(matrixitem)
 		}
+
+		// Or a boolean for active, default to true
+		if active, ok := buildArgs["active"]; ok {
+			c.DockerBuild.Active = active.(bool)
+		} else {
+			c.DockerBuild.Active = true	
+		}
+
 	}
 	return c
 }

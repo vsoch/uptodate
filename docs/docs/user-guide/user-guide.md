@@ -317,8 +317,12 @@ For example, let's say that we start with this configuration file:
 
 ```yaml
 dockerbuild:
+  
+  # switch to off to stop building, defaults to true if not present
+  active: true
+  
   build_args:
-
+  
     # This is an example of a manual build arg, versions are required
     llvm_version:
 

@@ -35,7 +35,7 @@ type Label struct {
 }
 
 // Entrypoint to parse one or more Docker build matrices
-func (s *DockerBuildParser) Parse(path string, changesOnly bool, branch string, registry string) error {
+func (s *DockerBuildParser) Parse(path string, changesOnly bool, branch string, registry string, buildAll bool) error {
 
 	// Find config files in path and don't allow prefixes
 	paths, _ := utils.RecursiveFind(path, "uptodate.yaml", false)
@@ -99,7 +99,7 @@ func (s *DockerBuildParser) Parse(path string, changesOnly bool, branch string, 
 				labels := getLabelLookup(entry, namingLookup, latestValues)
 
 				// Should we include for the build?
-				includeContainer := compareWithLatest(containerName, latestValues, currentValues)
+				includeContainer := compareWithLatest(containerName, latestValues, currentValues, buildAll)
 				if includeContainer {
 					command := generateBuildCommand(entry, dockerfile, labels)
 					description := generateBuildDescription(entry, dockerfile)
@@ -134,7 +134,13 @@ func (s *DockerBuildParser) Parse(path string, changesOnly bool, branch string, 
 
 // compareWithLatest compares current with latest values, and (assuming we have all variables that exist)
 // determines if we should run the build.
-func compareWithLatest(containerName string, latest map[string]map[string]string, currentValues map[string]map[string]Label) bool {
+func compareWithLatest(containerName string, latest map[string]map[string]string,
+	currentValues map[string]map[string]Label, buildAll bool) bool {
+
+	// Cut out early if buildAll is true
+	if buildAll {
+		return true
+	}
 
 	// This case shouldn't happen, the key is always there, but be conservative
 	currentLabels, ok := currentValues[containerName]

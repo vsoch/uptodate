@@ -421,7 +421,12 @@ $ uptodate dockerbuild --registry ghcr.io/rse-radiuss
 ```
 
 Note that the registry flag is enough to indicate that you want to look for changes of
-this type.
+this type. Finally, since we parse Dockerfiles to see if changes are needed, if you
+want to over-ride this check and just build the entire matrix:
+
+```bash
+$ uptodate dockerbuild --all
+```
 
 ### Git
 

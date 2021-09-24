@@ -27,14 +27,13 @@ inputs:
     required: false
     default: ""
 
-runs:
-  using: "docker"
-  image: "Dockerfile"
-
-# update when works!
 #runs:
-#  using: 'docker'
-#  image: 'docker://ghcr.io/vsoch/uptodate:latest'
+#  using: "docker"
+#  image: "Dockerfile"
+
+runs:
+  using: 'docker'
+  image: 'docker://ghcr.io/vsoch/uptodate:latest'
 
 branding:
   icon: "activity"

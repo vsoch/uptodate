@@ -429,7 +429,7 @@ func generateBuildCommand(buildargs map[string]string, dockerfile string, labels
 
 	// Add each buildarg and labels
 	for key, value := range buildargs {
-		command += " --build-arg " + key + "=\"" + value + "\""
+		command += " --build-arg " + key + "=" + value
 	}
 	for key, value := range labels {
 		command += " --label " + key + "=" + value

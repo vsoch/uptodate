@@ -41,8 +41,8 @@ func (s *DockerBuildParser) Parse(path string, changesOnly bool, branch string, 
 	// Find config files in path and don't allow prefixes
 	paths, _ := utils.RecursiveFind(path, "uptodate.yaml", false)
 
-	// If we want changed only, honor that
-	if changesOnly {
+	// If we want changed only, honor that, unless registry is defined
+	if changesOnly && registry == "" {
 
 		// Create list of changes (Modify or Add)
 		changed := git.GetChangedFilesStrings(path, branch)

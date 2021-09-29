@@ -3,6 +3,12 @@ dockerbuild:
   # Is the build active?
 #  active: false
 
+  # Specific combinations of build args to exclude (optional)
+  exclude:
+    abyss_version: ["2.3.1"]
+    ubuntu_version: ["21.04"]
+    llvm_version: ["6.0.0"]
+
   # Build all possible versions
   build_args:
 

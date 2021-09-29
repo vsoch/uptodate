@@ -25,6 +25,7 @@ type DockerHierarchy struct {
 type DockerBuild struct {
 	BuildArgs map[string]BuildArg `yaml:"build_args"`
 	Matrix    map[string][]string `yaml:"matrix,omitempty"`
+	Exclude   map[string][]string `yaml:"exclude,omitempty"`
 	Active    bool                `yaml:"active,omitempty"`
 }
 
@@ -80,6 +81,11 @@ func readConfig(yamlStr []byte) Conf {
 		// Otherwise it could be a matrix
 		if matrixitem, ok := buildArgs["matrix"]; ok {
 			c.DockerBuild.Matrix = convertDockerBuildMatrix(matrixitem)
+		}
+
+		// Or an excludes block
+		if exclude, ok := buildArgs["exclude"]; ok {
+			c.DockerBuild.Exclude = convertDockerBuildMatrix(exclude)
 		}
 
 		// Or a boolean for active, default to true

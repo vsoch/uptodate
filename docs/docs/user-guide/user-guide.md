@@ -399,7 +399,23 @@ dockerbuild:
 ```
 
 Since we are going to be honoring the list verbatim, you don't need to worry about
-extra metadata for the build args beyond the key, name, and type.
+extra metadata for the build args beyond the key, name, and type. Finally, for either
+type of matrix generation, you can exclude particular combinations. The following:
+
+```yaml
+# Specific combinations of build args to exclude (optional)
+exclude:
+  abyss_version: ["2.3.1", "2.3.1"]
+  ubuntu_version: ["21.04", "21.04"]
+  llvm_version: ["6.0.0", "5.0.1"]
+```
+
+Would exclude the two builds (you read in pairs top to bottom, and the list lengths
+must be the same:
+
+ - abyss 2.3.1, ubuntu 21.04, llvm 6.0.0
+ - abyss 2.3.1, ubuntu 21.04, llvm 5.0.1
+
 To run this for a repository root:
 
 ```bash

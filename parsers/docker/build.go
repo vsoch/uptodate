@@ -8,6 +8,7 @@ import (
 	"log"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -75,7 +76,7 @@ func (s *DockerBuildParser) Parse(path string, changesOnly bool, branch string, 
 		// Get a matrix, either from the config or on the fly generation, and naming lookup
 		namingLookup := make(map[string][]ContainerNamer)
 		namingList := []ContainerNamer{}
-		matrix := GetBuildMatrix(conf, &namingLookup, &namingList)
+		matrix := GetBuildMatrix(conf, &namingLookup, &namingList, &conf.DockerBuild.Exclude)
 
 		// Find Dockerfile in subpath
 		dirnamePath := filepath.Dir(subpath)
@@ -161,8 +162,8 @@ func compareWithLatest(containerName string, latest map[string]map[string]string
 	for _, label := range currentLabels {
 
 		// For a container, the label.value is <uri>:<tag>@sha
-		//parts := strings.SplitN(label.Value, ":", 2)
-		//tag := strings.SplitN(parts[1], "@", 2)[0]
+		// parts := strings.SplitN(label.Value, ":", 2)
+		// tag := strings.SplitN(parts[1], "@", 2)[0]
 
 		// This level looks up the label from the image config
 		latestValue, ok := latestValues[label.Name]
@@ -263,7 +264,9 @@ func getLatestValues(registry string, matrix []map[string]string, namingLookup m
 				if cached, ok := cache[namer.Slug+":"+tag]; ok {
 					currentValues[containerName][namer.Key] = cached
 				} else {
-					currentValues[containerName][namer.Key] = getUpdatedContainer(namer.Slug + ":" + tag)
+					updatedContainer := getUpdatedContainer(namer.Slug + ":" + tag)
+					currentValues[containerName][namer.Key] = updatedContainer
+					cache[namer.Slug+":"+tag] = updatedContainer
 				}
 			}
 		}
@@ -273,7 +276,7 @@ func getLatestValues(registry string, matrix []map[string]string, namingLookup m
 }
 
 // GetBuildMatrix: Upper level function to get a build matrix, either from config or generation
-func GetBuildMatrix(conf config.Conf, namingLookup *map[string][]ContainerNamer, namingList *[]ContainerNamer) []map[string]string {
+func GetBuildMatrix(conf config.Conf, namingLookup *map[string][]ContainerNamer, namingList *[]ContainerNamer, excludes *map[string][]string) []map[string]string {
 
 	// Prepare naming lookup
 	(*namingLookup)["container"] = []ContainerNamer{}
@@ -334,7 +337,79 @@ func GetBuildMatrix(conf config.Conf, namingLookup *map[string][]ContainerNamer,
 	if len(conf.DockerBuild.Matrix) == 0 {
 		matrix = GenerateBuildMatrix(vars)
 	}
+
+	// If we have an excludes matrix, filter - sort build args into string
+	if excludes != nil {
+
+		finalMatrix := []map[string]string{}
+		excludesHashes := getBuildArgsHashes(excludes)
+
+		// For each entry in the matrix, calculate hash and compare
+		for _, entry := range matrix {
+			entryHash := getBuildArgsHash(entry)
+			_, ok := excludesHashes[entryHash]
+			if ok {
+				fmt.Println("Excluding entry", entry)
+				continue
+			}
+			finalMatrix = append(finalMatrix, entry)
+		}
+		return finalMatrix
+	}
+
 	return matrix
+}
+
+// getBuildArgsHash sorts build args and returns key/value as string
+func getBuildArgsHashes(mapping *map[string][]string) map[string]bool {
+
+	// Restructure into list of maps
+	listing := []map[string]string{}
+
+	var valuesLength int
+	for _, values := range *mapping {
+		if valuesLength == 0 {
+			valuesLength = len(values)
+		}
+		// Lists MUST be the same length
+		if valuesLength != len(values) {
+			log.Fatalf("All entries in excludes must have equal length!")
+		}
+		listing = append(listing, map[string]string{})
+	}
+
+	for i := 0; i < valuesLength; i++ {
+		for key := range *mapping {
+			listing[i][key] = (*mapping)[key][i]
+		}
+	}
+
+	// Return the closest thing to a set golang has...
+	results := map[string]bool{}
+
+	for _, entry := range listing {
+		entryHash := getBuildArgsHash(entry)
+		if entryHash != "" {
+			results[entryHash] = true
+		}
+	}
+
+	return results
+}
+
+func getBuildArgsHash(mapping map[string]string) string {
+
+	// Sort the keys to iterate through structure
+	keys := make([]string, 0, len(mapping))
+	for key := range mapping {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	result := ""
+	for _, key := range keys {
+		result = result + key + ":" + mapping[key]
+	}
+	return result
 }
 
 // Create a NEW build matrix from an existing specification (we trust that it is correct)

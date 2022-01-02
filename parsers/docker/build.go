@@ -375,6 +375,10 @@ func getBuildArgsHashes(mapping *map[string][]string) map[string]bool {
 		if valuesLength != len(values) {
 			log.Fatalf("All entries in excludes must have equal length!")
 		}
+	}
+
+	// For each entry in the values, prepare a lookup
+	for i := 0; i < valuesLength; i++ {
 		listing = append(listing, map[string]string{})
 	}
 

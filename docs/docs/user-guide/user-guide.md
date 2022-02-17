@@ -450,7 +450,7 @@ own container basename:
 ```yaml
 dockerbuild:
   container_basename: ubuntu-hip-cuda
-
+```
 
 ### Git
 

@@ -23,10 +23,11 @@ type DockerHierarchy struct {
 // DockerBuild holds one or more build args
 // We'd have to separate these later anyway
 type DockerBuild struct {
-	BuildArgs map[string]BuildArg `yaml:"build_args"`
-	Matrix    map[string][]string `yaml:"matrix,omitempty"`
-	Exclude   map[string][]string `yaml:"exclude,omitempty"`
-	Active    bool                `yaml:"active,omitempty"`
+	BuildArgs         map[string]BuildArg `yaml:"build_args"`
+	Matrix            map[string][]string `yaml:"matrix,omitempty"`
+	Exclude           map[string][]string `yaml:"exclude,omitempty"`
+	ContainerBasename string              `yaml:"container_basename,omitempty"`
+	Active            bool                `yaml:"active,omitempty"`
 }
 
 // BuildArg expects metadata for building from a variable, spack, or other
@@ -94,7 +95,9 @@ func readConfig(yamlStr []byte) Conf {
 		} else {
 			c.DockerBuild.Active = true
 		}
-
+		if container_basename, ok := buildArgs["container_basename"]; ok {
+			c.DockerBuild.ContainerBasename = container_basename.(string)
+		}
 	}
 	return c
 }

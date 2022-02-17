@@ -444,6 +444,14 @@ want to over-ride this check and just build the entire matrix:
 $ uptodate dockerbuild --all
 ```
 
+But sometimes the nesting of folders isn't what you want! If you want to define your
+own container basename:
+
+```yaml
+dockerbuild:
+  container_basename: ubuntu-hip-cuda
+```
+
 ### Git
 
 The git uptodate parser will simply generate a json structure of changed files.

@@ -50,5 +50,5 @@ func RunDockerfileList(r *cmd.Root, c *cmd.Sub) {
 
 	// Update the dockerfiles with a Dockerfile parser
 	parser := docker.DockerfileListParser{}
-	parser.Parse(args.Root[0], !flags.NoEmptyArgs, !flags.NoIncludeArgs, flags.Changes, flags.Branch)
+	parser.Parse(args.Root, !flags.NoEmptyArgs, !flags.NoIncludeArgs, flags.Changes, flags.Branch)
 }

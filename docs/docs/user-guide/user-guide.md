@@ -301,6 +301,14 @@ $ uptodate dockerfilelist --no-empty-build-args
 ```
 
 
+You can also explicitly ask for more than one path:
+
+
+```bash
+$ uptodate dockerfilelist --no-empty-build-args ubuntu/20.04/Dockerfile ubuntu/18.04/Dockerfile
+```
+
+
 ### Docker Build
 
 Docker build is similar to the Docker Hierarchy updater in that it reads an `uptodate.yaml`

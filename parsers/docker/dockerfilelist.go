@@ -31,28 +31,34 @@ func (s *DockerfileListParser) AddDockerfile(root string, path string, includeEm
 }
 
 // Entrypoint to parse one or more Dockerfiles
-func (s *DockerfileListParser) Parse(path string, includeEmptyArgs bool, includeArgs bool, changesOnly bool, branch string) error {
+func (s *DockerfileListParser) Parse(providedPaths []string, includeEmptyArgs bool, includeArgs bool, changesOnly bool, branch string) error {
 
-	// Find Dockerfiles in path and allow prefixes
-	paths, _ := utils.RecursiveFind(path, "Dockerfile", true)
+	// Parse each path
+	paths := []string{}
+	for _, path := range providedPaths {
 
-	// If we want changed only, honor that
-	if changesOnly {
+		// Find Dockerfiles in path and allow prefixes
+		newPaths, _ := utils.RecursiveFind(path, "Dockerfile", true)
 
-		// Create list of changes (Modify or Add)
-		changed := git.GetChangedFilesStrings(path, branch)
-		paths = utils.FindOverlap(paths, changed)
+		// If we want changed only, honor that
+		if changesOnly {
+
+			// Create list of changes (Modify or Add)
+			changed := git.GetChangedFilesStrings(path, branch)
+			newPaths = utils.FindOverlap(newPaths, changed)
+		}
+
+		// Add each path as a Dockerfile to the parser to update
+		for _, subpath := range newPaths {
+			s.AddDockerfile(path, subpath, includeEmptyArgs, includeArgs)
+		}
+		paths = append(paths, newPaths...)
 	}
 
 	// No updated?
 	if len(paths) == 0 {
 		fmt.Println("No changes to parse.")
 		return nil
-	}
-
-	// Add each path as a Dockerfile to the parser to update
-	for _, subpath := range paths {
-		s.AddDockerfile(path, subpath, includeEmptyArgs, includeArgs)
 	}
 
 	// Keep track of updated count and set of results

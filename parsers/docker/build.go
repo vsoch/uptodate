@@ -36,17 +36,23 @@ type Label struct {
 }
 
 // Entrypoint to parse one or more Docker build matrices
-func (s *DockerBuildParser) Parse(path string, changesOnly bool, branch string, registry string, buildAll bool) error {
+func (s *DockerBuildParser) Parse(providedPaths []string, changesOnly bool, branch string, registry string, buildAll bool) error {
 
-	// Find config files in path and don't allow prefixes
-	paths, _ := utils.RecursiveFind(path, "uptodate.yaml", false)
+	// Parse each path
+	paths := []string{}
+	for _, path := range providedPaths {
 
-	// If we want changed only, honor that, unless registry is defined
-	if changesOnly && registry == "" {
+		// Find Dockerfiles in path and allow prefixes
+		newPaths, _ := utils.RecursiveFind(path, "uptodate.yaml", true)
 
-		// Create list of changes (Modify or Add)
-		changed := git.GetChangedFilesStrings(path, branch)
-		paths = utils.FindOverlap(paths, changed)
+		// If we want changed only, honor that, unless registry is defined
+		if changesOnly && registry == "" {
+
+			// Create list of changes (Modify or Add)
+			changed := git.GetChangedFilesStrings(path, branch)
+			newPaths = utils.FindOverlap(newPaths, changed)
+		}
+		paths = append(paths, newPaths...)
 	}
 
 	// No updated?

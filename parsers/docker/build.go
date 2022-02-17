@@ -94,7 +94,7 @@ func (s *DockerBuildParser) Parse(path string, changesOnly bool, branch string, 
 			for _, entry := range matrix {
 
 				// We can look up variables in the config
-				containerName := generateContainerName(registry, entry, namingLookup, dirname)
+				containerName := generateContainerName(registry, entry, namingLookup, dirname, conf.DockerBuild.ContainerBasename)
 
 				// Get labels for the container
 				labels := getLabelLookup(entry, namingLookup, latestValues)
@@ -199,7 +199,7 @@ func getCurrentValues(registry string, matrix []map[string]string, namingLookup 
 	for _, entry := range matrix {
 
 		// We can look up variables in the config
-		containerName := generateContainerName(registry, entry, namingLookup, dirname)
+		containerName := generateContainerName(registry, entry, namingLookup, dirname, "")
 		withoutTag := strings.SplitN(containerName, ":", 2)[0]
 
 		// Get a list of known tags to start
@@ -245,7 +245,7 @@ func getLatestValues(registry string, matrix []map[string]string, namingLookup m
 	for _, entry := range matrix {
 
 		// Generate container name to keep track of what variables are needed for each container
-		containerName := generateContainerName(registry, entry, namingLookup, dirname)
+		containerName := generateContainerName(registry, entry, namingLookup, dirname, "")
 		currentValues[containerName] = map[string]string{}
 
 		// Get updated values for each known build container argument
@@ -468,19 +468,27 @@ func GenerateBuildMatrix(vars []parsers.BuildVariable) []map[string]string {
 }
 
 // generateContainerName creates a suggested name for the container (without registry)
-func generateContainerName(registry string, buildargs map[string]string, lookup map[string][]ContainerNamer, basename string) string {
+func generateContainerName(registry string, buildargs map[string]string, lookup map[string][]ContainerNamer, basename string, container_name string) string {
+
+	// Start with the container basename (usually the directory it is in)
+	containerName := ""
+
+	// Do we have a container name provided?
+	if container_name != "" {
+		containerName = container_name
+	} else {
+
+		containerName = basename
+		// For each known container variable, this gets added to the container name
+		for _, namer := range lookup["container"] {
+			containerName = containerName + "-" + namer.Slug + "-" + buildargs[namer.Key]
+		}
+
+	}
 
 	// If given a registry name, use it
 	if registry != "" {
-		basename = registry + "/" + basename
-	}
-
-	// Start with the container basename (usually the directory it is in)
-	containerName := basename
-
-	// For each known container variable, this gets added to the container name
-	for _, namer := range lookup["container"] {
-		containerName = containerName + "-" + namer.Slug + "-" + buildargs[namer.Key]
+		containerName = registry + "/" + containerName
 	}
 
 	// Add tags, if there are any

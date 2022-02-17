@@ -54,6 +54,6 @@ func RunDockerBuild(r *cmd.Root, c *cmd.Sub) {
 
 	// Update the dockerfiles with a Dockerfile parser
 	parser := docker.DockerBuildParser{}
-	parser.Parse(args.Root[0], flags.Changes, flags.Branch, flags.Registry, flags.All)
+	parser.Parse(args.Root, flags.Changes, flags.Branch, flags.Registry, flags.All)
 
 }

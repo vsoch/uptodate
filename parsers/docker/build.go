@@ -84,10 +84,10 @@ func (s *DockerBuildParser) Parse(path string, changesOnly bool, branch string, 
 		dirname := filepath.Base(dirnamePath)
 
 		// For each container name, look up latest variables and generate labels lookup
-		latestValues := getLatestValues(registry, matrix, namingLookup, namingList, dirname)
+		latestValues := getLatestValues(registry, matrix, namingLookup, namingList, dirname, conf.DockerBuild.ContainerBasename)
 
 		// Now get current values for each container (e.g., hashes)
-		currentValues := getCurrentValues(registry, matrix, namingLookup, dirname)
+		currentValues := getCurrentValues(registry, matrix, namingLookup, dirname, conf.DockerBuild.ContainerBasename)
 
 		// We need a new build for each Dockerfile found (hopefully not many)
 		for _, dockerfile := range dockerfiles {
@@ -185,7 +185,7 @@ func compareWithLatest(containerName string, latest map[string]map[string]string
 
 // getCurrentValues retrieves and parses current container label values
 func getCurrentValues(registry string, matrix []map[string]string, namingLookup map[string][]ContainerNamer,
-	dirname string) map[string]map[string]Label {
+	dirname string, containerBasename string) map[string]map[string]Label {
 
 	// Prepare current values
 	var currentValues = map[string]map[string]Label{}
@@ -199,7 +199,7 @@ func getCurrentValues(registry string, matrix []map[string]string, namingLookup 
 	for _, entry := range matrix {
 
 		// We can look up variables in the config
-		containerName := generateContainerName(registry, entry, namingLookup, dirname, "")
+		containerName := generateContainerName(registry, entry, namingLookup, dirname, containerBasename)
 		withoutTag := strings.SplitN(containerName, ":", 2)[0]
 
 		// Get a list of known tags to start
@@ -234,7 +234,7 @@ func getCurrentValues(registry string, matrix []map[string]string, namingLookup 
 
 // getLatestValues returns a lookup of latest build arg namers and tags tha
 func getLatestValues(registry string, matrix []map[string]string, namingLookup map[string][]ContainerNamer,
-	namingList []ContainerNamer, dirname string) map[string]map[string]string {
+	namingList []ContainerNamer, dirname string, containerBasename string) map[string]map[string]string {
 
 	// current values for different build args
 	var currentValues = map[string]map[string]string{}
@@ -245,7 +245,7 @@ func getLatestValues(registry string, matrix []map[string]string, namingLookup m
 	for _, entry := range matrix {
 
 		// Generate container name to keep track of what variables are needed for each container
-		containerName := generateContainerName(registry, entry, namingLookup, dirname, "")
+		containerName := generateContainerName(registry, entry, namingLookup, dirname, containerBasename)
 		currentValues[containerName] = map[string]string{}
 
 		// Get updated values for each known build container argument

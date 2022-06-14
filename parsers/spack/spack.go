@@ -69,7 +69,7 @@ type SpackDependency struct {
 func GetSpackPackage(name string) SpackPackage {
 
 	// Get versions for current spack package
-	packageUrl := "https://spack.github.io/packages/data/packages/" + name + ".json"
+	packageUrl := "https://spack.github.io/packages.spack.io/data/packages/" + name + ".json"
 	response := utils.GetRequest(packageUrl, map[string]string{})
 
 	// The response gets parsed into a spack package

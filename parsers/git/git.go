@@ -182,8 +182,8 @@ func (s *GitParser) Parse(path string, branch string) error {
 
 	// If we are running in a GitHub Action, set the outputs
 	if utils.IsGitHubAction() {
-		fmt.Printf("::set-output name=git_matrix::%s\n", string(outJson))
-		fmt.Printf("::set-output name=git_matrix_empty::%s\n", strconv.FormatBool(isEmpty))
+		utils.WriteGitHubOutput("git_matrix", string(outJson))
+		utils.WriteGitHubOutput("git_matrix_empty", strconv.FormatBool(isEmpty))
 	}
 	return nil
 }

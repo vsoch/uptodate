@@ -83,8 +83,8 @@ func (s *DockerfileListParser) Parse(providedPaths []string, includeEmptyArgs bo
 			output = "[]"
 			isEmpty = true
 		}
-		fmt.Printf("::set-output name=dockerfilelist_matrix::%s\n", output)
-		fmt.Printf("::set-output name=dockerfilelist_matrix_empty::%s\n", strconv.FormatBool(isEmpty))
+		utils.WriteGitHubOutput("dockerfilelist_matrix", output)
+		utils.WriteGitHubOutput("dockerfilelist_matrix_empty", strconv.FormatBool(isEmpty))
 	}
 	return nil
 }

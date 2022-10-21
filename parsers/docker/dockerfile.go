@@ -351,8 +351,9 @@ func (s *DockerfileParser) Parse(path string, dryrun bool, changesOnly bool, bra
 			output = "[]"
 			isEmpty = true
 		}
-		fmt.Printf("::set-output name=dockerfile_matrix::%s\n", output)
-		fmt.Printf("::set-output name=dockerfile_matrix_empty::%s\n", strconv.FormatBool(isEmpty))
+		utils.WriteGitHubOutput("dockerfile_matrix", output)
+		utils.WriteGitHubOutput("dockerfile_matrix_empty", strconv.FormatBool(isEmpty))
+
 	}
 	return nil
 }

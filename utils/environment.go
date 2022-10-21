@@ -14,8 +14,7 @@ func IsGitHubAction() bool {
 
 }
 
-// If the GITHUB_OUTPUT envar is set, write to it
-
+// WriteGitHubOutput writes to GITHUB_OUTPUT if the envar is set
 func WriteGitHubOutput(key string, value string) {
 	file, _ := os.LookupEnv("GITHUB_OUTPUT")
 

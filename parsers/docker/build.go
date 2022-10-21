@@ -133,8 +133,8 @@ func (s *DockerBuildParser) Parse(providedPaths []string, changesOnly bool, bran
 
 	// If we are running in a GitHub Action, set the outputs
 	if utils.IsGitHubAction() {
-		fmt.Printf("::set-output name=dockerbuild_matrix_empty::%s\n", strconv.FormatBool(isEmpty))
-		fmt.Printf("::set-output name=dockerbuild_matrix::%s\n", output)
+		utils.WriteGitHubOutput("dockerbuild_matrix_empty", strconv.FormatBool(isEmpty))
+		utils.WriteGitHubOutput("dockerbuild_matrix", output)
 	}
 	return nil
 }

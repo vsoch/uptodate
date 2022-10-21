@@ -25,12 +25,13 @@ import (
 	fpath "path"
 	"strconv"
 
+	"path/filepath"
+	"reflect"
+
 	df "github.com/asottile/dockerfile"
 	"github.com/vsoch/uptodate/config"
 	"github.com/vsoch/uptodate/parsers"
 	"github.com/vsoch/uptodate/utils"
-	"path/filepath"
-	"reflect"
 )
 
 // A DockerHierarchy holds a set of preferences for parsing docker hierarchies
@@ -241,8 +242,9 @@ func (s *DockerHierarchyParser) Update(dryrun bool) error {
 			output = "[]"
 			isEmpty = true
 		}
-		fmt.Printf("::set-output name=dockerhierarchy_matrix::%s\n", output)
-		fmt.Printf("::set-output name=dockerhierarchy_matrix_empty::%s\n", strconv.FormatBool(isEmpty))
+		utils.WriteGitHubOutput("dockerhierarchy_matrix", output)
+		utils.WriteGitHubOutput("dockerhierarchy_matrix_empty", strconv.FormatBool(isEmpty))
+
 	}
 
 	return nil

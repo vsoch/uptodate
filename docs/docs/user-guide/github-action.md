@@ -376,7 +376,7 @@ jobs:
       id: dbuild
       with: 
         parser: dockerbases
-        args: "--all --bases ./bases ./envs"
+        flags: "--all --bases ./bases ./envs"
 
   view:
     needs:

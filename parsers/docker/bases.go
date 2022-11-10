@@ -134,6 +134,7 @@ func (s *DockerBasesParser) Parse(basesPath string, providedPaths []string, chan
 		output = "[]"
 		isEmpty = true
 	}
+	fmt.Println(output)
 
 	// If we are running in a GitHub Action, set the outputs
 	if utils.IsGitHubAction() {

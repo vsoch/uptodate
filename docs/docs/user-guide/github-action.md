@@ -350,6 +350,46 @@ is empty to know to continue or not.
 To see a current pipeline that uses uptodate, see the [rse-radiuss build matrices](https://github.com/rse-radiuss/docker-images/blob/main/.github/workflows/build-matrices.yaml)
 and [rse-radiuss Dockerfiles](https://github.com/rse-radiuss/docker-images/blob/main/.github/workflows/dockerfiles.yaml) workflows.
 
+## Docker Bases
+
+Here is an example using docker bases
+
+```yaml
+name: docker-bases-matrix
+
+on:  
+  schedule:
+    - cron:  '0 2 * * *'
+
+jobs:
+  test:
+    name: Run Docker Bases
+    runs-on: ubuntu-latest
+    outputs:
+      dockerbuild_matrix: ${{ steps.dbuild.outputs.dockerbases_matrix }}
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Generate Docker Bases Matrices
+      uses: vsoch/uptodate@main
+      id: dbuild
+      with: 
+        parser: dockerbases
+        args: "--all --bases ./bases ./envs"
+
+  view:
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Docker Bases Result
+        env:
+          result: ${{ needs.test.outputs.dockerbases_matrix }}
+        run: echo ${result}
+```
+
+
 ## Git
 
 Here is how to get a matrix of changed git files:

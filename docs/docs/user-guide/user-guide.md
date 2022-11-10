@@ -308,7 +308,6 @@ You can also explicitly ask for more than one path:
 $ uptodate dockerfilelist --no-empty-build-args ubuntu/20.04/Dockerfile ubuntu/18.04/Dockerfile
 ```
 
-
 ### Docker Build
 
 Docker build is similar to the Docker Hierarchy updater in that it reads an `uptodate.yaml`
@@ -459,6 +458,61 @@ own container basename:
 dockerbuild:
   container_basename: ubuntu-hip-cuda
 ```
+
+### Docker Bases
+
+Docker bases is similar to the other docker updaters in looking for `uptodate.yaml`,
+however it requires a directory of "bases" that will be used for the context of each
+build. As an example, let's say we are building Nix environments that all require a shell.nix.
+We might have a bases directory that looks like the following:
+
+```console
+bases/
+  Dockerfile
+  vscode/
+      Dockerfile
+```
+
+We might then have another directory with environments to discover that have `uptodate.yaml`:
+
+```bash
+envs/
+  openmpi/
+    shell.nix
+    uptodate.yaml
+  ...
+```
+
+Note that the `uptodate.yaml` here still use the `dockerbuild` directive,
+since we are ultimately docker building. Also note that the design of this
+builder expects the Dockerfile bases to be equivalent, and the only difference
+to be files in the context of the build that you add (e.g., `uptodate.yaml`).
+We would want the openmpi image built with each base, and the output name
+to be the common name plus the base folder. As an example:
+
+```bash
+                       # Dockerfiles in here  # path to uptodate.yaml files under here
+$ uptodate dockerbases --bases bases/         ./envs
+```
+
+And here is a real run:
+
+```bash
+$ go run main.go dockerbases --all --bases /home/vanessa/Desktop/Code/radiuss/nix-devbox/bases /home/vanessa/Desktop/Code/radiuss/nix-devbox 
+              _            _       _       
+  _   _ _ __ | |_ ___   __| | __ _| |_ ___ 
+ | | | | '_ \| __/ _ \ / _  |/ _  | __/ _ \
+ | |_| | |_) | || (_) | (_| | (_| | ||  __/
+  \__,_| .__/ \__\___/ \__,_|\__,_|\__\___|
+       |_|                     dockerbases
+
+docker build -f Dockerfile --build-arg clang_version=14 openmpi:clang-14
+docker build -f Dockerfile --build-arg clang_version=14 openmpi-vscode:clang-14
+```
+
+Note that every base will be built in the context of every `uptodate.yaml`. In this
+case since we have 2 bases and one yaml, we get two builds!
+
 
 ### Git
 

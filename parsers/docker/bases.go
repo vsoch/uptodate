@@ -92,14 +92,15 @@ func (s *DockerBasesParser) Parse(basesPath string, providedPaths []string, chan
 			for _, entry := range matrix {
 
 				// Suffix to the container is the location of the base image
+				relDirname := dirname
 				relpath := strings.Trim(strings.ReplaceAll(filepath.Dir(dockerfile), basesPath, ""), string(os.PathSeparator))
 				if relpath != "" {
 					relpath = strings.Trim(strings.ReplaceAll(relpath, string(os.PathSeparator), "-"), "-")
-					dirname = dirname + "-" + relpath
+					relDirname = relDirname + "-" + relpath
 				}
 
 				// We can look up variables in the config
-				containerName := generateContainerName(registry, entry, namingLookup, dirname, conf.DockerBuild.ContainerBasename)
+				containerName := generateContainerName(registry, entry, namingLookup, relDirname, conf.DockerBuild.ContainerBasename)
 
 				// Get labels for the container
 				labels := getLabelLookup(entry, namingLookup, latestValues)

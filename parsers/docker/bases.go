@@ -107,14 +107,14 @@ func (s *DockerBasesParser) Parse(basesPath string, providedPaths []string, chan
 				// Should we include for the build?
 				includeContainer := compareWithLatest(containerName, latestValues, currentValues, buildAll)
 				if includeContainer {
-					command := generateBasesBuildCommand(entry, dockerfile, labels, dirnamePath)
+					command := generateBasesBuildCommand(entry, dockerfile, labels)
 					description := generateBuildDescription(entry, dockerfile)
 					fmt.Println(command + " " + containerName)
 
 					// Generate a build for each Dockerfile in bases path
 					newResult := parsers.BuildResult{BuildArgs: entry, CommandPrefix: command,
 						Description: description, Filename: dockerfile, Parser: "dockerbases",
-						Name: subpath, ContainerName: containerName}
+						Name: subpath, ContainerName: containerName, Context: dirnamePath}
 
 					results = append(results, newResult)
 
@@ -143,7 +143,7 @@ func (s *DockerBasesParser) Parse(basesPath string, providedPaths []string, chan
 }
 
 // generateBasesCommand will generate a build command for a given bases Dockerfile and buildards
-func generateBasesBuildCommand(buildargs map[string]string, dockerfile string, labels map[string]string, dirnamePath string) string {
+func generateBasesBuildCommand(buildargs map[string]string, dockerfile string, labels map[string]string) string {
 
 	// Start the command (use environment variable for name)
 	command := "docker build -f " + dockerfile
@@ -155,6 +155,5 @@ func generateBasesBuildCommand(buildargs map[string]string, dockerfile string, l
 	for key, value := range labels {
 		command += " --label " + key + "=" + value
 	}
-	command += " " + dirnamePath
 	return command
 }

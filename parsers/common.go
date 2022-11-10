@@ -1,10 +1,11 @@
 package parsers
 
 import (
-	"github.com/blang/semver/v4"
-	"github.com/vsoch/uptodate/utils"
 	"regexp"
 	"strings"
+
+	"github.com/blang/semver/v4"
+	"github.com/vsoch/uptodate/utils"
 )
 
 // A Result object will store a path to some file that was changed, and
@@ -21,6 +22,7 @@ type Result struct {
 type BuildResult struct {
 	Name          string            `json:"name,omitempty"`
 	ContainerName string            `json:"container_name,omitempty"`
+	Context       string            `json:"context,omitempty"`
 	Filename      string            `json:"filename,omitempty"`
 	Parser        string            `json:"parser,omitempty"`
 	BuildArgs     map[string]string `json:"buildargs,omitempty"`

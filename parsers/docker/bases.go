@@ -107,7 +107,7 @@ func (s *DockerBasesParser) Parse(basesPath string, providedPaths []string, chan
 				// Should we include for the build?
 				includeContainer := compareWithLatest(containerName, latestValues, currentValues, buildAll)
 				if includeContainer {
-					command := generateBuildCommand(entry, dockerfile, labels)
+					command := generateBasesBuildCommand(entry, dockerfile, labels, dirnamePath)
 					description := generateBuildDescription(entry, dockerfile)
 					fmt.Println(command + " " + containerName)
 
@@ -140,4 +140,21 @@ func (s *DockerBasesParser) Parse(basesPath string, providedPaths []string, chan
 		utils.WriteGitHubOutput("dockerbases_matrix", output)
 	}
 	return nil
+}
+
+// generateBasesCommand will generate a build command for a given bases Dockerfile and buildards
+func generateBasesBuildCommand(buildargs map[string]string, dockerfile string, labels map[string]string, dirnamePath string) string {
+
+	// Start the command (use environment variable for name)
+	command := "docker build -f " + dockerfile
+
+	// Add each buildarg and labels
+	for key, value := range buildargs {
+		command += " --build-arg " + key + "=" + value
+	}
+	for key, value := range labels {
+		command += " --label " + key + "=" + value
+	}
+	command += " " + dirnamePath
+	return command
 }

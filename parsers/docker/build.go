@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -97,6 +98,14 @@ func (s *DockerBuildParser) Parse(providedPaths []string, changesOnly bool, bran
 
 		// We need a new build for each Dockerfile found (hopefully not many)
 		for _, dockerfile := range dockerfiles {
+
+			// If there is an .uptodate-ignore, honor it
+			dockerfileDir := filepath.Dir(dockerfile)
+			ignorefile := filepath.Join(dockerfileDir, ".uptodate-ignore")
+			if _, err := os.Stat(ignorefile); err == nil {
+				continue
+			}
+
 			for _, entry := range matrix {
 
 				// We can look up variables in the config

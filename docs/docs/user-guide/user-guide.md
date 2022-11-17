@@ -459,7 +459,12 @@ dockerbuild:
   container_basename: ubuntu-hip-cuda
 ```
 
+Finally, to ignore a specific nested directory with a Dockerfile, add a `.uptodate-ignore` file there.
+The build will be skipped.
+
 ### Docker Bases
+
+?> $ uptodate dockerbases
 
 Docker bases is similar to the other docker updaters in looking for `uptodate.yaml`,
 however it requires a directory of "bases" that will be used for the context of each
@@ -515,6 +520,8 @@ case since we have 2 bases and one yaml, we get two builds!
 
 
 ### Git
+
+?> $ uptodate git
 
 The git uptodate parser will simply generate a json structure of changed files.
 For example, here we are running it locally to see that the changes in the most
